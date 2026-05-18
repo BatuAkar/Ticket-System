@@ -8,12 +8,26 @@ namespace TicketSistemi.Controllers
     public class TicketController : Controller
     {
         // 1. Tüm Ticket'ları Listeleme Ekranı
-        public IActionResult Index()
+        public IActionResult Index(TicketStatus? status)
         {
             var tickets = JsonDbManager.GetTickets();
             
+            // Genel sayımları filtrelemeden bağımsız olarak hesaplayıp ViewBag'e atıyoruz
+            ViewBag.TotalCount = tickets.Count;
+            ViewBag.OpenCount = tickets.Count(t => t.Status == TicketStatus.Acik);
+            ViewBag.SolvedCount = tickets.Count(t => t.Status == TicketStatus.Cozuldu);
+
+            // LINQ ile filtreleme (Eğer bir durum seçilmişse)
+            if (status.HasValue)
+            {
+                tickets = tickets.Where(t => t.Status == status.Value).ToList();
+            }
+
             // Hoca LINQ istemişti. Tarihe göre ters sıralıyoruz.
             var sortedTickets = tickets.OrderByDescending(t => t.CreatedDate).ToList();
+            
+            // Seçili filtreyi View'a taşıyoruz
+            ViewBag.CurrentStatus = status;
             
             return View(sortedTickets);
         }

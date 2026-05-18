@@ -7,5 +7,23 @@
     "CreatedDate": "2026-05-18T16:23:29.5693625+03:00",
     "Status": 2,
     "SupportReply": "22 may\u0131sss"
+  },
+  {
+    "Id": 2,
+    "Title": "araba ",
+    "Description": "arabamin silecek suyunu degistiremiyorum",
+    "CustomerName": "ali",
+    "CreatedDate": "2026-05-18T18:28:35.887148+03:00",
+    "Status": 3,
+    "SupportReply": "arabanin kaputu altindan mavi kapakli hazneyi doldurun"
+  },
+  {
+    "Id": 3,
+    "Title": "proje",
+    "Description": "bu proje ne zaman bitecek",
+    "CustomerName": "batu",
+    "CreatedDate": "2026-05-18T18:36:30.552424+03:00",
+    "Status": 1,
+    "SupportReply": null
   }
 ]

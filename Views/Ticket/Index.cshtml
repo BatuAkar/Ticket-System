@@ -3,10 +3,10 @@
 @{
     ViewData["Title"] = "Destek Paneli";
     
-    // LINQ Analiz Sorguları
-    var toplamTicket = Model.Count();
-    var acikTicket = Model.Count(t => t.Status == TicketSistemi.Models.TicketStatus.Acik);
-    var cozulunTicket = Model.Count(t => t.Status == TicketSistemi.Models.TicketStatus.Cozuldu);
+    // LINQ Analiz Sorguları (Controller'dan gelen genel veriler)
+    var toplamTicket = ViewBag.TotalCount;
+    var acikTicket = ViewBag.OpenCount;
+    var cozulunTicket = ViewBag.SolvedCount;
 }
 
 <style>
@@ -52,43 +52,57 @@
 
     <div class="row mb-5">
         <div class="col-md-4">
-            <div class="card stat-card shadow-sm bg-gradient-indigo text-white rounded-3">
-                <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Toplam Talep</h6>
-                        <h2 class="display-6 fw-extrabold mb-0">@toplamTicket</h2>
+            <a href="?status=" class="text-decoration-none">
+                <div class="card stat-card shadow-sm bg-gradient-indigo text-white rounded-3">
+                    <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Toplam Talep</h6>
+                            <h2 class="display-6 fw-extrabold mb-0">@toplamTicket</h2>
+                        </div>
+                        <div class="fs-1 opacity-50">📊</div>
                     </div>
-                    <div class="fs-1 opacity-50">📊</div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-md-4">
-            <div class="card stat-card shadow-sm bg-gradient-amber text-white rounded-3">
-                <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Bekleyen (Açık)</h6>
-                        <h2 class="display-6 fw-extrabold mb-0">@acikTicket</h2>
+            <a href="?status=1" class="text-decoration-none">
+                <div class="card stat-card shadow-sm bg-gradient-amber text-white rounded-3">
+                    <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Bekleyen (Açık)</h6>
+                            <h2 class="display-6 fw-extrabold mb-0">@acikTicket</h2>
+                        </div>
+                        <div class="fs-1 opacity-50">⏳</div>
                     </div>
-                    <div class="fs-1 opacity-50">⏳</div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-md-4">
-            <div class="card stat-card shadow-sm bg-gradient-emerald text-white rounded-3">
-                <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Çözülen Talepler</h6>
-                        <h2 class="display-6 fw-extrabold mb-0">@cozulunTicket</h2>
+            <a href="?status=2" class="text-decoration-none">
+                <div class="card stat-card shadow-sm bg-gradient-emerald text-white rounded-3">
+                    <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Çözülen Talepler</h6>
+                            <h2 class="display-6 fw-extrabold mb-0">@cozulunTicket</h2>
+                        </div>
+                        <div class="fs-1 opacity-50">✅</div>
                     </div>
-                    <div class="fs-1 opacity-50">✅</div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
     <div class="card border-0 shadow rounded-3 overflow-hidden">
-        <div class="card-header bg-white border-0 py-3">
+        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold text-secondary">📋 Aktif Bilet Listesi</h5>
+            <form method="get" class="d-inline-flex m-0">
+                <select name="status" class="form-select form-select-sm fw-bold text-secondary" style="min-width: 130px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onchange="this.form.submit()">
+                    <option value="">Tümü</option>
+                    <option value="1" selected="@(ViewBag.CurrentStatus == TicketSistemi.Models.TicketStatus.Acik)">Açık</option>
+                    <option value="2" selected="@(ViewBag.CurrentStatus == TicketSistemi.Models.TicketStatus.Cozuldu)">Çözüldü</option>
+                    <option value="3" selected="@(ViewBag.CurrentStatus == TicketSistemi.Models.TicketStatus.Kapandi)">Kapandı</option>
+                </select>
+            </form>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
