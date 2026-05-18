@@ -1,0 +1,43 @@
+@model TicketSistemi.Models.Ticket
+
+@{
+    ViewData["Title"] = "Talebi Cevapla";
+}
+
+<div class="container mt-4">
+    <h2>Talebi Yanıtla (#@Model.Id)</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Title</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Müşteri: @Model.CustomerName | Tarih: @Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</h6>
+                    <p class="card-text mt-3">@Model.Description</p>
+                </div>
+            </div>
+
+            <form asp-action="Reply" method="post">
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label">Destek Ekibi Cevabı</label>
+                    <textarea name="supportReply" class="form-control" rows="5">@Model.SupportReply</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Talep Durumu</label>
+                    <select name="status" class="form-select">
+                        <option value="1" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Acik)">Açık</option>
+                        <option value="2" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Cozuldu)">Çözüldü</option>
+                        <option value="3" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Kapandi)">Kapandı</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Cevabı Kaydet ve Güncelle</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">İptal</a>
+            </form>
+        </div>
+    </div>
+</div>

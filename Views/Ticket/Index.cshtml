@@ -1,0 +1,163 @@
+@model IEnumerable<TicketSistemi.Models.Ticket>
+
+@{
+    ViewData["Title"] = "Destek Paneli";
+    
+    // LINQ Analiz Sorguları
+    var toplamTicket = Model.Count();
+    var acikTicket = Model.Count(t => t.Status == TicketSistemi.Models.TicketStatus.Acik);
+    var cozulunTicket = Model.Count(t => t.Status == TicketSistemi.Models.TicketStatus.Cozuldu);
+}
+
+<style>
+    .bg-gradient-indigo { 
+        background: linear-gradient(135deg, #4f46e5, #3730a3) !important; 
+    }
+    .bg-gradient-amber { 
+        background: linear-gradient(135deg, #f59e0b, #b45309) !important; 
+    }
+    .bg-gradient-emerald { 
+        background: linear-gradient(135deg, #10b981, #065f46) !important; 
+    }
+    
+    /* Kartlara Havada Asılı Kalma Efekti */
+    .stat-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none !important;
+    }
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Tablo Satırı Vurgusu */
+    .custom-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+    .custom-table tbody tr:hover {
+        background-color: #f8fafc !important;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <h1 class="fw-extrabold text-dark tracking-tight mb-1" style="font-size: 1.85rem;">Destek Talepleri Yönetim Paneli</h1>
+            <p class="text-muted mb-0">Sistem veritabanındaki anlık bilet durumları ve canlı analizler.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary px-4 py-2.5 fw-bold shadow" style="border-radius: 8px;">
+            🚀 Yeni Talep Oluştur
+        </a>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm bg-gradient-indigo text-white rounded-3">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Toplam Talep</h6>
+                        <h2 class="display-6 fw-extrabold mb-0">@toplamTicket</h2>
+                    </div>
+                    <div class="fs-1 opacity-50">📊</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm bg-gradient-amber text-white rounded-3">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Bekleyen (Açık)</h6>
+                        <h2 class="display-6 fw-extrabold mb-0">@acikTicket</h2>
+                    </div>
+                    <div class="fs-1 opacity-50">⏳</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm bg-gradient-emerald text-white rounded-3">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Çözülen Talepler</h6>
+                        <h2 class="display-6 fw-extrabold mb-0">@cozulunTicket</h2>
+                    </div>
+                    <div class="fs-1 opacity-50">✅</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow rounded-3 overflow-hidden">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-bold text-secondary">📋 Aktif Bilet Listesi</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table custom-table align-middle mb-0">
+                    <thead class="table-dark small text-uppercase">
+                        <tr>
+                            <th class="ps-4 py-3">TALEP ID</th>
+                            <th class="py-3">KONU BAŞLIĞI</th>
+                            <th class="py-3">MÜŞTERİ</th>
+                            <th class="py-3">OLUŞTURMA TARİHİ</th>
+                            <th class="py-3">DURUM</th>
+                            <th class="py-3 text-end pe-4">İŞLEM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <span class="fs-3 d-block mb-2">🎈</span> Sistemde henüz hiç destek talebi bulunmuyor.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold text-indigo">#@item.Id</td>
+                                    <td>
+                                        <span class="fw-bold text-dark d-block">@item.Title</span>
+                                        <small class="text-muted d-inline-block text-truncate" style="max-width: 300px;">@item.Description</small>
+                                    </td>
+                                    <td class="fw-semibold text-secondary">@item.CustomerName</td>
+                                    <td class="text-muted">@item.CreatedDate.ToString("dd MMM yyyy HH:mm")</td>
+                                    <td>
+                                        @if(item.Status == TicketSistemi.Models.TicketStatus.Acik)
+                                        {
+                                            <span class="badge rounded-pill bg-warning text-dark px-3 py-2 fw-bold shadow-sm">Açık</span>
+                                        }
+                                        else if(item.Status == TicketSistemi.Models.TicketStatus.Cozuldu)
+                                        {
+                                            <span class="badge rounded-pill bg-success text-white px-3 py-2 fw-bold shadow-sm">Çözüldü</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill bg-secondary text-white px-3 py-2 fw-bold shadow-sm">Kapandı</span>
+                                        }
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                        {
+                                            <a asp-action="Reply" asp-route-id="@item.Id" class="btn btn-sm btn-primary px-3 fw-bold shadow-sm">
+                                                🛠️ Cevapla / Yönet
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-muted border px-2 py-1.5 fw-normal">
+                                                Kilitli 🔒
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
