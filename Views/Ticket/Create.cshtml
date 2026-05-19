@@ -13,9 +13,8 @@
             <form asp-action="Create" method="post">
                 
                 <div class="mb-3">
-                    <label asp-for="CustomerName" class="form-label">Adınız Soyadınız</label>
-                    <input asp-for="CustomerName" class="form-control" placeholder="Örn: John Doe" />
-                    <span asp-validation-for="CustomerName" class="text-danger"></span>
+                    <label class="form-label text-secondary small fw-bold">TALEP SAHİBİ</label>
+                    <input class="form-control bg-light" value="@Context.Request.Cookies["Username"]" readonly style="font-weight: 600; cursor: not-allowed;" />
                 </div>
 
                 <div class="mb-3">

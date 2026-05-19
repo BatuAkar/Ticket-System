@@ -111,18 +111,24 @@
                         <tr>
                             <th class="ps-4 py-3">TALEP ID</th>
                             <th class="py-3">KONU BAŞLIĞI</th>
-                            <th class="py-3">MÜŞTERİ</th>
+                            @if (Context.Request.Cookies["UserRole"] == "Admin")
+                            {
+                                <th class="py-3">MÜŞTERİ</th>
+                            }
                             <th class="py-3">OLUŞTURMA TARİHİ</th>
                             <th class="py-3">ÜSTLENEN</th>
                             <th class="py-3">DURUM</th>
-                            <th class="py-3 text-end pe-4">İŞLEM</th>
+                            @if (Context.Request.Cookies["UserRole"] == "Admin")
+                            {
+                                <th class="py-3 text-end pe-4">İŞLEM</th>
+                            }
                         </tr>
                     </thead>
                     <tbody>
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
+                                <td colspan="@(Context.Request.Cookies["UserRole"] == "Admin" ? 7 : 5)" class="text-center py-5 text-muted">
                                     <span class="fs-3 d-block mb-2">🎈</span> Sistemde henüz hiç destek talebi bulunmuyor.
                                 </td>
                             </tr>
@@ -137,7 +143,10 @@
                                         <span class="fw-bold text-dark d-block">@item.Title</span>
                                         <small class="text-muted d-inline-block text-truncate" style="max-width: 300px;">@item.Description</small>
                                     </td>
-                                    <td class="fw-semibold text-secondary">@item.CustomerName</td>
+                                    @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                    {
+                                        <td class="fw-semibold text-secondary">@item.CustomerName</td>
+                                    }
                                     <td class="text-muted">@item.CreatedDate.ToString("dd MMM yyyy HH:mm")</td>
                                     <td>
                                         @if (!string.IsNullOrEmpty(item.AssignedAgent))
@@ -163,9 +172,9 @@
                                             <span class="badge rounded-pill bg-secondary text-white px-3 py-2 fw-bold shadow-sm">Kapandı</span>
                                         }
                                     </td>
-                                    <td class="text-end pe-4">
-                                        @if (Context.Request.Cookies["UserRole"] == "Admin")
-                                        {
+                                    @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                    {
+                                        <td class="text-end pe-4">
                                             @if (string.IsNullOrEmpty(item.AssignedAgent))
                                             {
                                                 <form asp-action="Claim" asp-route-id="@item.Id" method="post" class="d-inline">
@@ -182,14 +191,8 @@
                                                     🗑️ Sil
                                                 </button>
                                             </form>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-light text-muted border px-2 py-1.5 fw-normal">
-                                                Kilitli 🔒
-                                            </span>
-                                        }
-                                    </td>
+                                        </td>
+                                    }
                                 </tr>
                             }
                         }

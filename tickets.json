@@ -41,12 +41,22 @@
   },
   {
     "Id": 5,
-    "Title": "l",
-    "Description": "b\u0131yv",
-    "CustomerName": "k",
-    "CreatedDate": "2026-05-19T17:34:51.480227+03:00",
+    "Title": "proje eleman\u0131",
+    "Description": "bunlar\u0131n yapaca\u011F\u0131 proje anca bu kadar olur ",
+    "CustomerName": "user",
+    "CreatedDate": "2026-05-19T18:01:09.802894+03:00",
+    "Status": 2,
+    "SupportReply": "hakl\u0131s\u0131n brom. bizden bi cac\u0131k olmaz",
+    "AssignedAgent": "admin"
+  },
+  {
+    "Id": 6,
+    "Title": "eh i\u015Fte ",
+    "Description": "\u00E7\u00F6z\u00FCn art\u0131k",
+    "CustomerName": "user",
+    "CreatedDate": "2026-05-19T18:01:38.060558+03:00",
     "Status": 1,
     "SupportReply": null,
-    "AssignedAgent": "admin"
+    "AssignedAgent": null
   }
 ]
