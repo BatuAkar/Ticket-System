@@ -17,14 +17,21 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-controller="Ticket" asp-action="Index">Talepleri Listele</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-controller="Ticket" asp-action="Create">Yeni Talep Aç</a>
-                        </li>
-                    </ul>
+                    @if (Context.Request.Cookies["UserRole"] != null)
+                    {
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="Ticket" asp-action="Index">Talepleri Listele</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="Ticket" asp-action="Create">Yeni Talep Aç</a>
+                            </li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="navbar-nav flex-grow-1"></ul>
+                    }
 
                     <ul class="navbar-nav">
                         @if (Context.Request.Cookies["UserRole"] != null)

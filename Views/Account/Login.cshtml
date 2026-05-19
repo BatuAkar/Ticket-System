@@ -1,135 +1,146 @@
 @{
+    Layout = null;
     ViewData["Title"] = "Sistem Girişi";
 }
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TicketSistemi</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <style>
+        /* Arka plan için modern bir gradyan */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
 
-<style>
-    /* Arka plan için modern bir gradyan */
-    body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-    }
+        .login-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            transition: transform 0.3s ease;
+        }
 
-    .login-card {
-        border: none;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-        overflow: hidden;
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.95);
-        transition: transform 0.3s ease;
-    }
+        .login-header {
+            background: #1e293b;
+            padding: 40px 20px;
+            color: white;
+            text-align: center;
+        }
 
-    .login-header {
-        background: #1e293b;
-        padding: 40px 20px;
-        color: white;
-        text-align: center;
-    }
+        .login-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 40px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
 
-    .login-icon-wrapper {
-        width: 80px;
-        height: 80px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 15px;
-        font-size: 40px;
-        border: 2px solid rgba(255,255,255,0.2);
-    }
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
 
-    .form-control {
-        border-radius: 10px;
-        padding: 12px 15px;
-        border: 1px solid #e2e8f0;
-        transition: all 0.3s ease;
-    }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
 
-    .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
+        .btn-login {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            color: white;
+        }
 
-    .btn-login {
-        background: linear-gradient(to right, #667eea, #764ba2);
-        border: none;
-        border-radius: 10px;
-        padding: 12px;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-        color: white;
-    }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
 
-    .btn-login:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        color: white;
-    }
-
-    .info-box {
-        background: #f8fafc;
-        border-left: 4px solid #667eea;
-        border-radius: 8px;
-    }
-</style>
-
-<div class="container">
-    <div class="row justify-content-center align-items-center" style="min-height: 85vh;">
-        <div class="col-md-5 col-lg-4">
-            <div class="card login-card">
-                <div class="login-header">
-                    <div class="login-icon-wrapper">
-                        🔐
+        .info-box {
+            background: #f8fafc;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+            <div class="col-md-5 col-lg-4">
+                <div class="card login-card">
+                    <div class="login-header">
+                        <div class="login-icon-wrapper">
+                            🔐
+                        </div>
+                        <h3 class="fw-bold mb-1">Hoş Geldiniz</h3>
+                        <p class="text-white-50 small mb-0">Destek Paneline Erişmek İçin Giriş Yapın</p>
                     </div>
-                    <h3 class="fw-bold mb-1">Hoş Geldiniz</h3>
-                    <p class="text-white-50 small mb-0">Destek Paneline Erişmek İçin Giriş Yapın</p>
-                </div>
 
-                <div class="card-body p-4 p-md-5">
-                    @if (ViewBag.ErrorMessage != null)
-                    {
-                        <div class="alert alert-danger border-0 small shadow-sm mb-4">
-                            <i class="me-2">🚫</i> @ViewBag.ErrorMessage
-                        </div>
-                    }
+                    <div class="card-body p-4 p-md-5">
+                        @if (ViewBag.ErrorMessage != null)
+                        {
+                            <div class="alert alert-danger border-0 small shadow-sm mb-4">
+                                <i class="me-2">🚫</i> @ViewBag.ErrorMessage
+                            </div>
+                        }
 
-                    <form asp-action="Login" method="post">
-                        <div class="mb-3">
-                            <label class="form-label text-secondary small fw-bold">KULLANICI ADI</label>
-                            <input type="text" name="username" class="form-control" required placeholder="admin veya user" autocomplete="off" />
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label text-secondary small fw-bold">ŞİFRE</label>
-                            <input type="password" name="password" class="form-control" required placeholder="••••••" />
-                        </div>
+                        <form asp-action="Login" method="post">
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small fw-bold">KULLANICI ADI</label>
+                                <input type="text" name="username" class="form-control" required placeholder="admin veya user" autocomplete="off" />
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label text-secondary small fw-bold">ŞİFRE</label>
+                                <input type="password" name="password" class="form-control" required placeholder="••••••" />
+                            </div>
 
-                        <button type="submit" class="btn btn-login w-100 shadow-sm">
-                            Giriş Yap <i class="ms-2">→</i>
-                        </button>
-                    </form>
+                            <button type="submit" class="btn btn-login w-100 shadow-sm">
+                                Giriş Yap <i class="ms-2">→</i>
+                            </button>
+                        </form>
 
-                    <div class="info-box p-3 mt-5">
-                        <div class="d-flex align-items-center mb-1">
-                            <span class="me-2">💡</span>
-                            <span class="small fw-bold text-dark">Test Giriş Bilgilendirme:</span>
-                        </div>
-                        <div class="ps-4">
-                            <p class="mb-0 x-small text-muted" style="font-size: 0.75rem;">
-                                <strong>Admin:</strong> admin / 123 <br>
-                                <strong>User:</strong> user / 123
-                            </p>
+                        <div class="info-box p-3 mt-5">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="me-2">💡</span>
+                                <span class="small fw-bold text-dark">Test Giriş Bilgilendirme:</span>
+                            </div>
+                            <div class="ps-4">
+                                <p class="mb-0 x-small text-muted" style="font-size: 0.75rem;">
+                                    <strong>Admin:</strong> admin / 123 <br>
+                                    <strong>User:</strong> user / 123
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="text-center mt-4 text-white-50 small">
-                &copy; 2026 Teknik Destek Takip Sistemi
+                
+                <div class="text-center mt-4 text-white-50 small">
+                    &copy; 2026 Teknik Destek Takip Sistemi
+                </div>
             </div>
         </div>
     </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

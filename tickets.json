@@ -25,9 +25,9 @@
     "Description": "bu proje ne zaman bitecek",
     "CustomerName": "batu",
     "CreatedDate": "2026-05-18T18:36:30.552424+03:00",
-    "Status": 1,
-    "SupportReply": null,
-    "AssignedAgent": null
+    "Status": 3,
+    "SupportReply": "bitmez bu",
+    "AssignedAgent": "admin"
   },
   {
     "Id": 4,
@@ -58,5 +58,25 @@
     "Status": 1,
     "SupportReply": null,
     "AssignedAgent": null
+  },
+  {
+    "Id": 7,
+    "Title": "deneme",
+    "Description": "denememened",
+    "CustomerName": "user",
+    "CreatedDate": "2026-05-19T18:04:24.2101+03:00",
+    "Status": 3,
+    "SupportReply": "denemeee",
+    "AssignedAgent": "admin"
+  },
+  {
+    "Id": 8,
+    "Title": "deneme konu",
+    "Description": "deneme metin",
+    "CustomerName": "admin",
+    "CreatedDate": "2026-05-19T18:12:04.594305+03:00",
+    "Status": 1,
+    "SupportReply": null,
+    "AssignedAgent": "admin"
   }
 ]
