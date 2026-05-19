@@ -20,12 +20,14 @@ namespace TicketSistemi.Controllers
             {
                 // Tarayıcıya "Ben Adminim" çerezi (Cookie) bırakıyoruz
                 Response.Cookies.Append("UserRole", "Admin", new CookieOptions { Expires = DateTimeOffset.Now.AddMinutes(30) });
+                Response.Cookies.Append("Username", username, new CookieOptions { Expires = DateTimeOffset.Now.AddMinutes(30) });
                 return RedirectToAction("Index", "Ticket");
             }
             else if (username == "user" && password == "123")
             {
                 // Tarayıcıya "Ben Normal Kullanıcıyım" çerezi bırakıyoruz
                 Response.Cookies.Append("UserRole", "User", new CookieOptions { Expires = DateTimeOffset.Now.AddMinutes(30) });
+                Response.Cookies.Append("Username", username, new CookieOptions { Expires = DateTimeOffset.Now.AddMinutes(30) });
                 return RedirectToAction("Index", "Ticket");
             }
 
@@ -37,8 +39,9 @@ namespace TicketSistemi.Controllers
         // 3. Çıkış Yap (POST veya GET)
         public IActionResult Logout()
         {
-            // Tarayıcıdaki rol çerezini siliyoruz
+            // Tarayıcıdaki rol ve kullanıcı adı çerezlerini siliyoruz
             Response.Cookies.Delete("UserRole");
+            Response.Cookies.Delete("Username");
             return RedirectToAction("Index", "Ticket");
         }
     }

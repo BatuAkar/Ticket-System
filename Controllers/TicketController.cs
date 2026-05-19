@@ -79,9 +79,9 @@ namespace TicketSistemi.Controllers
         public IActionResult Reply(int id, string supportReply, TicketStatus status)
         {
             if (Request.Cookies["UserRole"] != "Admin")
-{
-    return RedirectToAction("Login", "Account");
-}
+            {
+                return RedirectToAction("Login", "Account");
+            }
             var tickets = JsonDbManager.GetTickets();
             var ticketIndex = tickets.FindIndex(t => t.Id == id);
             
@@ -90,6 +90,50 @@ namespace TicketSistemi.Controllers
             tickets[ticketIndex].SupportReply = supportReply;
             tickets[ticketIndex].Status = status;
             
+            // Eğer daha önce üstlenilmemişse, otomatik olarak cevaplayan admini ata
+            if (string.IsNullOrEmpty(tickets[ticketIndex].AssignedAgent))
+            {
+                tickets[ticketIndex].AssignedAgent = Request.Cookies["Username"] ?? "Destek Elemanı";
+            }
+            
+            JsonDbManager.SaveTickets(tickets);
+            
+            return RedirectToAction("Index");
+        }
+
+        // 6. Talebi Üstlenme (POST)
+        [HttpPost]
+        public IActionResult Claim(int id)
+        {
+            if (Request.Cookies["UserRole"] != "Admin")
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var tickets = JsonDbManager.GetTickets();
+            var ticketIndex = tickets.FindIndex(t => t.Id == id);
+            
+            if (ticketIndex == -1) return NotFound();
+            
+            tickets[ticketIndex].AssignedAgent = Request.Cookies["Username"] ?? "Destek Elemanı";
+            JsonDbManager.SaveTickets(tickets);
+            
+            return RedirectToAction("Index");
+        }
+
+        // 7. Talebi Silme (POST)
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            if (Request.Cookies["UserRole"] != "Admin")
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var tickets = JsonDbManager.GetTickets();
+            var ticket = tickets.FirstOrDefault(t => t.Id == id);
+            
+            if (ticket == null) return NotFound();
+            
+            tickets.Remove(ticket);
             JsonDbManager.SaveTickets(tickets);
             
             return RedirectToAction("Index");

@@ -19,5 +19,6 @@ namespace TicketSistemi.Models
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public TicketStatus Status { get; set; } = TicketStatus.Acik;
         public string? SupportReply { get; set; } 
+        public string? AssignedAgent { get; set; }
     }
 }

@@ -10,6 +10,21 @@
 
     <div class="row">
         <div class="col-md-6">
+            @if (!string.IsNullOrEmpty(Model.AssignedAgent))
+            {
+                <div class="alert alert-info py-2 shadow-sm d-flex align-items-center mb-3" style="border-radius: 8px;">
+                    <span class="fs-5 me-2">👤</span> 
+                    <span>Bu talep <strong>@Model.AssignedAgent</strong> tarafından üstlenilmiştir.</span>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning py-2 shadow-sm d-flex align-items-center mb-3" style="border-radius: 8px;">
+                    <span class="fs-5 me-2">⚠️</span> 
+                    <span>Bu talep henüz kimse tarafından üstlenilmedi. Cevap verdiğinizde otomatik olarak üzerinize atanacaktır.</span>
+                </div>
+            }
+
             <div class="card mb-4 bg-light">
                 <div class="card-body">
                     <h5 class="card-title">@Model.Title</h5>

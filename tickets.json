@@ -6,7 +6,8 @@
     "CustomerName": "Tolga can",
     "CreatedDate": "2026-05-18T16:23:29.5693625+03:00",
     "Status": 2,
-    "SupportReply": "22 may\u0131sss"
+    "SupportReply": "22 may\u0131sss",
+    "AssignedAgent": null
   },
   {
     "Id": 2,
@@ -15,7 +16,8 @@
     "CustomerName": "ali",
     "CreatedDate": "2026-05-18T18:28:35.887148+03:00",
     "Status": 3,
-    "SupportReply": "arabanin kaputu altindan mavi kapakli hazneyi doldurun"
+    "SupportReply": "arabanin kaputu altindan mavi kapakli hazneyi doldurun",
+    "AssignedAgent": null
   },
   {
     "Id": 3,
@@ -24,7 +26,8 @@
     "CustomerName": "batu",
     "CreatedDate": "2026-05-18T18:36:30.552424+03:00",
     "Status": 1,
-    "SupportReply": null
+    "SupportReply": null,
+    "AssignedAgent": null
   },
   {
     "Id": 4,
@@ -33,6 +36,17 @@
     "CustomerName": "ceg",
     "CreatedDate": "2026-05-18T22:28:55.865037+03:00",
     "Status": 1,
-    "SupportReply": null
+    "SupportReply": null,
+    "AssignedAgent": null
+  },
+  {
+    "Id": 5,
+    "Title": "l",
+    "Description": "b\u0131yv",
+    "CustomerName": "k",
+    "CreatedDate": "2026-05-19T17:34:51.480227+03:00",
+    "Status": 1,
+    "SupportReply": null,
+    "AssignedAgent": "admin"
   }
 ]
