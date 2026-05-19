@@ -3,61 +3,82 @@
 @{
     ViewData["Title"] = "Destek Paneli";
     
-    // LINQ Analiz Sorguları (Controller'dan gelen genel veriler)
     var toplamTicket = ViewBag.TotalCount;
     var acikTicket = ViewBag.OpenCount;
     var cozulunTicket = ViewBag.SolvedCount;
 }
 
 <style>
+    /* Gradient stats card colors */
     .bg-gradient-indigo { 
-        background: linear-gradient(135deg, #4f46e5, #3730a3) !important; 
+        background: linear-gradient(135deg, #6366f1, #4338ca) !important; 
     }
     .bg-gradient-amber { 
-        background: linear-gradient(135deg, #f59e0b, #b45309) !important; 
+        background: linear-gradient(135deg, #f59e0b, #d97706) !important; 
     }
     .bg-gradient-emerald { 
-        background: linear-gradient(135deg, #10b981, #065f46) !important; 
+        background: linear-gradient(135deg, #10b981, #059669) !important; 
     }
     
-    /* Kartlara Havada Asılı Kalma Efekti */
-    .stat-card {
+    .stat-card-custom {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         border: none !important;
+        border-radius: 16px;
     }
-    .stat-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15) !important;
+    .stat-card-custom:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12) !important;
     }
 
-    /* Tablo Satırı Vurgusu */
-    .custom-table tbody tr {
+    .table-container {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .custom-table th {
+        background-color: #f8fafc !important;
+        color: #475569;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .custom-table tr {
         transition: background-color 0.2s ease;
     }
-    .custom-table tbody tr:hover {
+
+    .custom-table tr:hover {
         background-color: #f8fafc !important;
     }
 </style>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <h1 class="fw-extrabold text-dark tracking-tight mb-1" style="font-size: 1.85rem;">Destek Talepleri Yönetim Paneli</h1>
-            <p class="text-muted mb-0">Sistem veritabanındaki anlık bilet durumları ve canlı analizler.</p>
+<div class="container">
+    <!-- Header Section -->
+    <div class="row align-items-center mb-4 pb-3 border-bottom g-3">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-slate-800 mb-1">Destek Talepleri Yönetim Paneli</h2>
+            <p class="text-secondary mb-0">Sistem veritabanındaki anlık bilet durumları ve canlı analizler.</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary px-4 py-2.5 fw-bold shadow" style="border-radius: 8px;">
-            🚀 Yeni Talep Oluştur
-        </a>
+        <div class="col-md-4 text-md-end">
+            <a asp-action="Create" class="btn btn-custom btn-custom-primary shadow-sm text-decoration-none">
+                🚀 Yeni Destek Talebi Aç
+            </a>
+        </div>
     </div>
 
-    <div class="row mb-5">
+    <!-- Analytics Stats -->
+    <div class="row g-4 mb-5">
         <div class="col-md-4">
             <a href="?status=" class="text-decoration-none">
-                <div class="card stat-card shadow-sm bg-gradient-indigo text-white rounded-3">
+                <div class="card stat-card-custom shadow-sm bg-gradient-indigo text-white">
                     <div class="card-body p-4 d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Toplam Talep</h6>
-                            <h2 class="display-6 fw-extrabold mb-0">@toplamTicket</h2>
+                            <h2 class="display-6 fw-bold mb-0">@toplamTicket</h2>
                         </div>
                         <div class="fs-1 opacity-50">📊</div>
                     </div>
@@ -66,11 +87,11 @@
         </div>
         <div class="col-md-4">
             <a href="?status=1" class="text-decoration-none">
-                <div class="card stat-card shadow-sm bg-gradient-amber text-white rounded-3">
+                <div class="card stat-card-custom shadow-sm bg-gradient-amber text-white">
                     <div class="card-body p-4 d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Bekleyen (Açık)</h6>
-                            <h2 class="display-6 fw-extrabold mb-0">@acikTicket</h2>
+                            <h2 class="display-6 fw-bold mb-0">@acikTicket</h2>
                         </div>
                         <div class="fs-1 opacity-50">⏳</div>
                     </div>
@@ -79,11 +100,11 @@
         </div>
         <div class="col-md-4">
             <a href="?status=2" class="text-decoration-none">
-                <div class="card stat-card shadow-sm bg-gradient-emerald text-white rounded-3">
+                <div class="card stat-card-custom shadow-sm bg-gradient-emerald text-white">
                     <div class="card-body p-4 d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Çözülen Talepler</h6>
-                            <h2 class="display-6 fw-extrabold mb-0">@cozulunTicket</h2>
+                            <h2 class="display-6 fw-bold mb-0">@cozulunTicket</h2>
                         </div>
                         <div class="fs-1 opacity-50">✅</div>
                     </div>
@@ -92,11 +113,14 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow rounded-3 overflow-hidden">
-        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-secondary">📋 Aktif Bilet Listesi</h5>
+    <!-- Tickets List Table -->
+    <div class="table-container border-0 mb-4">
+        <div class="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-slate-800 d-flex align-items-center">
+                <span class="me-2">📋</span> Bilet Listesi
+            </h5>
             <form method="get" class="d-inline-flex m-0">
-                <select name="status" class="form-select form-select-sm fw-bold text-secondary" style="min-width: 130px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onchange="this.form.submit()">
+                <select name="status" class="form-select form-select-sm fw-semibold text-secondary" style="min-width: 140px; border-radius: 8px; cursor: pointer;" onchange="this.form.submit()">
                     <option value="">Tümü</option>
                     <option value="1" selected="@(ViewBag.CurrentStatus == TicketSistemi.Models.TicketStatus.Acik)">Açık</option>
                     <option value="2" selected="@(ViewBag.CurrentStatus == TicketSistemi.Models.TicketStatus.Cozuldu)">Çözüldü</option>
@@ -104,101 +128,104 @@
                 </select>
             </form>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table custom-table align-middle mb-0">
-                    <thead class="table-dark small text-uppercase">
+        
+        <div class="table-responsive">
+            <table class="table custom-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4 py-3">TALEP ID</th>
+                        <th class="py-3">KONU BAŞLIĞI</th>
+                        @if (Context.Request.Cookies["UserRole"] == "Admin")
+                        {
+                            <th class="py-3">MÜŞTERİ</th>
+                        }
+                        <th class="py-3">OLUŞTURMA TARİHİ</th>
+                        <th class="py-3">ÜSTLENEN</th>
+                        <th class="py-3">DURUM</th>
+                        @if (Context.Request.Cookies["UserRole"] == "Admin")
+                        {
+                            <th class="py-3 text-end pe-4">İŞLEM</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
                         <tr>
-                            <th class="ps-4 py-3">TALEP ID</th>
-                            <th class="py-3">KONU BAŞLIĞI</th>
-                            @if (Context.Request.Cookies["UserRole"] == "Admin")
-                            {
-                                <th class="py-3">MÜŞTERİ</th>
-                            }
-                            <th class="py-3">OLUŞTURMA TARİHİ</th>
-                            <th class="py-3">ÜSTLENEN</th>
-                            <th class="py-3">DURUM</th>
-                            @if (Context.Request.Cookies["UserRole"] == "Admin")
-                            {
-                                <th class="py-3 text-end pe-4">İŞLEM</th>
-                            }
+                            <td colspan="@(Context.Request.Cookies["UserRole"] == "Admin" ? 7 : 5)" class="text-center py-5 text-muted">
+                                <span class="fs-2 d-block mb-3">🎈</span> Destek talebi bulunmuyor.
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if (!Model.Any())
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
                         {
                             <tr>
-                                <td colspan="@(Context.Request.Cookies["UserRole"] == "Admin" ? 7 : 5)" class="text-center py-5 text-muted">
-                                    <span class="fs-3 d-block mb-2">🎈</span> Sistemde henüz hiç destek talebi bulunmuyor.
+                                <td class="ps-4 fw-bold" style="color: #4f46e5;">#@item.Id</td>
+                                <td>
+                                    <span class="fw-bold text-slate-800 d-block">@item.Title</span>
+                                    <small class="text-muted d-inline-block text-truncate" style="max-width: 320px;">@item.Description</small>
                                 </td>
-                            </tr>
-                        }
-                        else
-                        {
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td class="ps-4 fw-bold text-indigo">#@item.Id</td>
-                                    <td>
-                                        <span class="fw-bold text-dark d-block">@item.Title</span>
-                                        <small class="text-muted d-inline-block text-truncate" style="max-width: 300px;">@item.Description</small>
-                                    </td>
-                                    @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                {
+                                    <td class="fw-semibold text-secondary">@item.CustomerName</td>
+                                }
+                                <td class="text-muted">@item.CreatedDate.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.AssignedAgent))
                                     {
-                                        <td class="fw-semibold text-secondary">@item.CustomerName</td>
+                                        <span class="badge fw-semibold px-2.5 py-1.5 border rounded-pill" style="color: #4338ca; background-color: #e0e7ff; border: 1px solid #c7d2fe;">
+                                            👤 @item.AssignedAgent
+                                        </span>
                                     }
-                                    <td class="text-muted">@item.CreatedDate.ToString("dd MMM yyyy HH:mm")</td>
-                                    <td>
-                                        @if (!string.IsNullOrEmpty(item.AssignedAgent))
-                                        {
-                                            <span class="badge bg-info text-dark fw-semibold">👤 @item.AssignedAgent</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">Atanmadı</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if(item.Status == TicketSistemi.Models.TicketStatus.Acik)
-                                        {
-                                            <span class="badge rounded-pill bg-warning text-dark px-3 py-2 fw-bold shadow-sm">Açık</span>
-                                        }
-                                        else if(item.Status == TicketSistemi.Models.TicketStatus.Cozuldu)
-                                        {
-                                            <span class="badge rounded-pill bg-success text-white px-3 py-2 fw-bold shadow-sm">Çözüldü</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge rounded-pill bg-secondary text-white px-3 py-2 fw-bold shadow-sm">Kapandı</span>
-                                        }
-                                    </td>
-                                    @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                    else
                                     {
-                                        <td class="text-end pe-4">
+                                        <span class="text-muted small">Atanmadı</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if(item.Status == TicketSistemi.Models.TicketStatus.Acik)
+                                    {
+                                        <span class="badge rounded-pill badge-acik px-3 py-2">Açık</span>
+                                    }
+                                    else if(item.Status == TicketSistemi.Models.TicketStatus.Cozuldu)
+                                    {
+                                        <span class="badge rounded-pill badge-cozuldu px-3 py-2">Çözüldü</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill badge-kapandi px-3 py-2">Kapandı</span>
+                                    }
+                                </td>
+                                @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                {
+                                    <td class="text-end pe-4">
+                                        <div class="d-inline-flex gap-1">
                                             @if (string.IsNullOrEmpty(item.AssignedAgent))
                                             {
-                                                <form asp-action="Claim" asp-route-id="@item.Id" method="post" class="d-inline">
-                                                    <button type="submit" class="btn btn-sm btn-success px-2.5 fw-bold shadow-sm me-1">
+                                                <form asp-action="Claim" asp-route-id="@item.Id" method="post" class="m-0">
+                                                    <button type="submit" class="btn btn-sm btn-success px-3 fw-bold rounded-pill shadow-sm">
                                                         🙋‍♂️ Üstlen
                                                     </button>
                                                 </form>
                                             }
-                                            <a asp-action="Reply" asp-route-id="@item.Id" class="btn btn-sm btn-primary px-2.5 fw-bold shadow-sm me-1">
+                                            <a asp-action="Reply" asp-route-id="@item.Id" class="btn btn-sm btn-primary px-3 fw-bold rounded-pill shadow-sm">
                                                 🛠️ Cevapla
                                             </a>
-                                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Bu destek talebini silmek istediğinize emin misiniz?');">
-                                                <button type="submit" class="btn btn-sm btn-danger px-2.5 fw-bold shadow-sm">
+                                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="m-0" onsubmit="return confirm('Bu destek talebini silmek istediğinize emin misiniz?');">
+                                                <button type="submit" class="btn btn-sm btn-danger px-3 fw-bold rounded-pill shadow-sm">
                                                     🗑️ Sil
                                                 </button>
                                             </form>
-                                        </td>
-                                    }
-                                </tr>
-                            }
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
                         }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

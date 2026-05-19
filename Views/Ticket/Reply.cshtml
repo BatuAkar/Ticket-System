@@ -1,58 +1,111 @@
 @model TicketSistemi.Models.Ticket
 
 @{
-    ViewData["Title"] = "Talebi Cevapla";
+    ViewData["Title"] = "Destek Talebini Cevapla";
 }
 
-<div class="container mt-4">
-    <h2>Talebi Yanıtla (#@Model.Id)</h2>
-    <hr />
+<div class="container">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <h3 class="fw-bold text-slate-800 mb-1">Talep Detayı & Cevaplama</h3>
+            <p class="text-secondary mb-0">Destek talebini inceleyin, durumu güncelleyin ve müşteriye cevap yazın.</p>
+        </div>
+        <span class="badge bg-dark px-3 py-2 rounded-pill fs-6 fw-bold">ID: #@Model.Id</span>
+    </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            @if (!string.IsNullOrEmpty(Model.AssignedAgent))
-            {
-                <div class="alert alert-info py-2 shadow-sm d-flex align-items-center mb-3" style="border-radius: 8px;">
-                    <span class="fs-5 me-2">👤</span> 
-                    <span>Bu talep <strong>@Model.AssignedAgent</strong> tarafından üstlenilmiştir.</span>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-warning py-2 shadow-sm d-flex align-items-center mb-3" style="border-radius: 8px;">
-                    <span class="fs-5 me-2">⚠️</span> 
-                    <span>Bu talep henüz kimse tarafından üstlenilmedi. Cevap verdiğinizde otomatik olarak üzerinize atanacaktır.</span>
-                </div>
-            }
+    <div class="row g-4">
+        <!-- Left Column: Ticket details -->
+        <div class="col-lg-6">
+            <div class="card card-custom border-0 shadow-sm p-4 h-100">
+                <h5 class="fw-bold text-slate-800 border-bottom pb-2 mb-3">💬 Destek Talebi</h5>
 
-            <div class="card mb-4 bg-light">
-                <div class="card-body">
-                    <h5 class="card-title">@Model.Title</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">Müşteri: @Model.CustomerName | Tarih: @Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</h6>
-                    <p class="card-text mt-3">@Model.Description</p>
+                <!-- Owner & Date info -->
+                <div class="d-flex justify-content-between align-items-center mb-4 bg-light p-3 rounded-3 border">
+                    <div>
+                        <span class="text-muted small d-block">Müşteri</span>
+                        <strong class="text-dark">@Model.CustomerName</strong>
+                    </div>
+                    <div class="text-end">
+                        <span class="text-muted small d-block">Oluşturma Tarihi</span>
+                        <strong class="text-dark">@Model.CreatedDate.ToString("dd MMM yyyy HH:mm")</strong>
+                    </div>
+                </div>
+
+                <!-- Assignment status -->
+                <div class="mb-4">
+                    @if (!string.IsNullOrEmpty(Model.AssignedAgent))
+                    {
+                        <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-0 py-2.5 px-3" style="border-radius: 10px;">
+                            <span class="fs-4 me-2">👤</span> 
+                            <div>
+                                <span class="small d-block text-info-emphasis">Üstlenen Temsilci:</span>
+                                <strong class="text-info-emphasis">@Model.AssignedAgent</strong>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-0 py-2.5 px-3" style="border-radius: 10px;">
+                            <span class="fs-4 me-2">⚠️</span> 
+                            <div>
+                                <span class="small d-block text-warning-emphasis">Atama Durumu:</span>
+                                <strong class="text-warning-emphasis">Henüz Atanmadı (İlk cevaptan sonra üzerinize atanacaktır)</strong>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Ticket Subject & Content -->
+                <div class="mb-3">
+                    <span class="text-muted small fw-semibold">KONU BAŞLIĞI</span>
+                    <h5 class="fw-bold text-dark mt-1">@Model.Title</h5>
+                </div>
+
+                <div>
+                    <span class="text-muted small fw-semibold">DETAYLI AÇIKLAMA</span>
+                    <div class="bg-light p-3 rounded-3 mt-1 border text-slate-700" style="white-space: pre-line; line-height: 1.6;">
+                        @Model.Description
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <form asp-action="Reply" method="post">
-                <input type="hidden" name="id" value="@Model.Id" />
+        <!-- Right Column: Response form -->
+        <div class="col-lg-6">
+            <div class="card card-custom border-0 shadow-sm p-4 h-100">
+                <h5 class="fw-bold text-slate-800 border-bottom pb-2 mb-3">🛠️ Yanıt & Güncelleme</h5>
 
-                <div class="mb-3">
-                    <label class="form-label">Destek Ekibi Cevabı</label>
-                    <textarea name="supportReply" class="form-control" rows="5">@Model.SupportReply</textarea>
-                </div>
+                <form asp-action="Reply" method="post" class="d-flex flex-column h-100">
+                    <input type="hidden" name="id" value="@Model.Id" />
 
-                <div class="mb-3">
-                    <label class="form-label">Talep Durumu</label>
-                    <select name="status" class="form-select">
-                        <option value="1" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Acik)">Açık</option>
-                        <option value="2" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Cozuldu)">Çözüldü</option>
-                        <option value="3" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Kapandi)">Kapandı</option>
-                    </select>
-                </div>
+                    <!-- Reply textarea -->
+                    <div class="mb-4 flex-grow-1">
+                        <label class="form-label text-slate-700 fw-semibold">Destek Ekibi Cevabı</label>
+                        <textarea name="supportReply" class="form-control form-control-custom" rows="8" placeholder="Müşteriye iletilecek cevabı buraya yazın..." required>@Model.SupportReply</textarea>
+                    </div>
 
-                <button type="submit" class="btn btn-primary">Cevabı Kaydet ve Güncelle</button>
-                <a asp-action="Index" class="btn btn-secondary ms-2">İptal</a>
-            </form>
+                    <!-- Status Selector -->
+                    <div class="mb-4">
+                        <label class="form-label text-slate-700 fw-semibold">Talep Durumu</label>
+                        <select name="status" class="form-select form-control-custom" style="cursor: pointer;">
+                            <option value="1" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Acik)">Açık (Beklemede)</option>
+                            <option value="2" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Cozuldu)">Çözüldü (İşlem Tamamlandı)</option>
+                            <option value="3" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Kapandi)">Kapandı (Arşivlendi)</option>
+                        </select>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex align-items-center justify-content-end gap-2 mt-auto pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-light btn-custom text-secondary border px-4">
+                            İptal
+                        </a>
+                        <button type="submit" class="btn btn-custom btn-custom-primary px-4 shadow-sm">
+                            Yanıtı Kaydet ve Güncelle
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
