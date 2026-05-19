@@ -138,9 +138,6 @@
                     {
                         <ul class="navbar-nav flex-grow-1">
                             <li class="nav-item">
-                                <a class="nav-link nav-link-custom text-white" asp-controller="Ticket" asp-action="Index">Talepleri Listele</a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link nav-link-custom text-white" asp-controller="Ticket" asp-action="Create">Yeni Talep Aç</a>
                             </li>
                         </ul>
@@ -153,15 +150,26 @@
                     <ul class="navbar-nav align-items-center">
                         @if (Context.Request.Cookies["UserRole"] != null)
                         {
-                            <li class="nav-item me-3">
-                                <span class="badge bg-slate-850 border border-secondary px-3 py-2 rounded-pill small" style="background-color: #1e293b;">
-                                    👤 Kullanıcı: <strong class="text-white">@Context.Request.Cookies["Username"]</strong> 
-                                    <span class="mx-1">|</span> 
-                                    Rol: <strong class="text-warning">@Context.Request.Cookies["UserRole"]</strong>
-                                </span>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-outline-danger btn-sm px-3 rounded-pill fw-semibold" asp-controller="Account" asp-action="Logout">Çıkış Yap</a>
+                            <li class="nav-item dropdown">
+                                <a class="btn btn-outline-light dropdown-toggle px-3 py-1.5 rounded-pill fw-semibold d-flex align-items-center gap-2 text-decoration-none" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    👤 @Context.Request.Cookies["Username"]
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-2" aria-labelledby="profileDropdown" style="border-radius: 12px; min-width: 200px;">
+                                    <li>
+                                        <div class="px-3 py-1.5 text-secondary small fw-bold text-uppercase tracking-wider border-bottom mb-1" style="font-size: 0.7rem;">Hesap Bilgileri</div>
+                                    </li>
+                                    <li>
+                                        <span class="dropdown-item-text text-dark fw-semibold d-flex align-items-center gap-2 small">
+                                            🛡️ Rol: <span class="badge bg-warning text-dark rounded-pill fw-bold">@Context.Request.Cookies["UserRole"]</span>
+                                        </span>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger fw-semibold d-flex align-items-center gap-2 rounded-3 small" asp-controller="Account" asp-action="Logout">
+                                            🚪 Çıkış Yap
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         }
                     </ul>
