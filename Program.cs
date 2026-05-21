@@ -1,7 +1,14 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using TicketSistemi.Hubs;
+using TicketSistemi.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.AddFile(Path.Combine(builder.Environment.ContentRootPath, "Logs", "app.log"));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

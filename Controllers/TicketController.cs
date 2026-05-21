@@ -5,6 +5,7 @@ using TicketSistemi.Data;
 using System.Linq;
 using Microsoft.AspNetCore.SignalR;
 using TicketSistemi.Hubs;
+using Microsoft.Extensions.Logging;
 
 namespace TicketSistemi.Controllers
 {
@@ -12,10 +13,12 @@ namespace TicketSistemi.Controllers
     public class TicketController : Controller
     {
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly ILogger<TicketController> _logger;
 
-        public TicketController(IHubContext<NotificationHub> hubContext)
+        public TicketController(IHubContext<NotificationHub> hubContext, ILogger<TicketController> logger)
         {
             _hubContext = hubContext;
+            _logger = logger;
         }
 
         // 1. Tüm Ticket'ları Listeleme Ekranı
@@ -82,6 +85,8 @@ namespace TicketSistemi.Controllers
                 tickets.Add(newTicket);
                 JsonDbManager.SaveTickets(tickets);
 
+                _logger.LogInformation("Yeni destek talebi oluşturuldu. ID: {Id}, Başlık: {Title}, Müşteri: {CustomerName}", newTicket.Id, newTicket.Title, username);
+
                 // SignalR Live Notification
                 _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Yeni bir destek talebi oluşturuldu! Konu: {newTicket.Title}", "Admin");
                 
@@ -110,8 +115,11 @@ namespace TicketSistemi.Controllers
             
             if (ticketIndex == -1) return NotFound();
             
-            tickets[ticketIndex].AssignedAgent = User.Identity?.Name ?? "Destek Elemanı";
+            var agentName = User.Identity?.Name ?? "Destek Elemanı";
+            tickets[ticketIndex].AssignedAgent = agentName;
             JsonDbManager.SaveTickets(tickets);
+
+            _logger.LogInformation("Destek talebi üstlenildi. ID: {Id}, Üstlenen Admin: {AdminName}", id, agentName);
             
             return RedirectToAction("Index");
         }
@@ -129,6 +137,8 @@ namespace TicketSistemi.Controllers
             
             tickets.Remove(ticket);
             JsonDbManager.SaveTickets(tickets);
+
+            _logger.LogInformation("Destek talebi silindi. ID: {Id}, Başlık: {Title}, Sileyen Admin: {AdminName}", id, ticket.Title, User.Identity?.Name);
             
             return RedirectToAction("Index");
         }
@@ -241,6 +251,8 @@ namespace TicketSistemi.Controllers
                 }
             }
 
+            var oldStatus = ticket.Status;
+
             // Mesaj içeriği boş değilse yeni mesaj ekle
             if (!string.IsNullOrWhiteSpace(message))
             {
@@ -271,6 +283,8 @@ namespace TicketSistemi.Controllers
                         ticket.Status = TicketStatus.Acik;
                     }
                 }
+
+                _logger.LogInformation("Destek talebine yanıt yazıldı. ID: {Id}, Yazan: {Username}, Rol: {Role}", id, username, isAdmin ? "Admin" : "User");
             }
 
             // Durum güncellemesi yapılmışsa uygula
@@ -281,6 +295,11 @@ namespace TicketSistemi.Controllers
                 {
                     ticket.Status = status.Value;
                 }
+            }
+
+            if (oldStatus != ticket.Status)
+            {
+                _logger.LogInformation("Destek talebi durumu güncellendi. ID: {Id}, Eski Durum: {OldStatus}, Yeni Durum: {NewStatus}, Güncelleyen: {Username}", id, oldStatus, ticket.Status, username);
             }
 
             JsonDbManager.SaveTickets(tickets);

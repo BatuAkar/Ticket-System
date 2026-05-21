@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,13 @@ namespace TicketSistemi.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly ILogger<AccountController> _logger;
+
+        public AccountController(ILogger<AccountController> logger)
+        {
+            _logger = logger;
+        }
+
         // 1. Login Sayfasını Göster (GET)
         [HttpGet]
         public IActionResult Login()
@@ -53,8 +61,12 @@ namespace TicketSistemi.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
+                _logger.LogInformation("Kullanıcı giriş yaptı: {Username}", user.Username);
+
                 return RedirectToAction("Index", "Ticket");
             }
+
+            _logger.LogWarning("Başarısız giriş denemesi. Kullanıcı adı: {Username}", username);
 
             ViewBag.ErrorMessage = "Kullanıcı adı veya şifre hatalı!";
             return View();
@@ -78,12 +90,14 @@ namespace TicketSistemi.Controllers
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
+                _logger.LogWarning("Başarısız kayıt denemesi. Kullanıcı adı veya şifre boş.");
                 ViewBag.ErrorMessage = "Kullanıcı adı ve şifre alanları zorunludur!";
                 return View();
             }
 
             if (password != confirmPassword)
             {
+                _logger.LogWarning("Başarısız kayıt denemesi. Şifreler uyuşmuyor. Kullanıcı adı: {Username}", username);
                 ViewBag.ErrorMessage = "Şifreler uyuşmuyor!";
                 return View();
             }
@@ -91,6 +105,7 @@ namespace TicketSistemi.Controllers
             var users = JsonDbManager.GetUsers();
             if (users.Any(u => string.Equals(u.Username, username.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
+                _logger.LogWarning("Başarısız kayıt denemesi. Kullanıcı adı zaten alınmış: {Username}", username);
                 ViewBag.ErrorMessage = "Bu kullanıcı adı zaten alınmış!";
                 return View();
             }
@@ -106,6 +121,8 @@ namespace TicketSistemi.Controllers
             users.Add(newUser);
             JsonDbManager.SaveUsers(users);
 
+            _logger.LogInformation("Yeni kullanıcı kaydedildi: {Username}", newUser.Username);
+
             TempData["SuccessMessage"] = "Kayıt başarıyla tamamlandı! Şimdi giriş yapabilirsiniz.";
             return RedirectToAction("Login");
         }
@@ -113,7 +130,12 @@ namespace TicketSistemi.Controllers
         // 5. Çıkış Yap (POST veya GET)
         public async Task<IActionResult> Logout()
         {
+            var username = User.Identity?.Name;
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!string.IsNullOrEmpty(username))
+            {
+                _logger.LogInformation("Kullanıcı çıkış yaptı: {Username}", username);
+            }
             return RedirectToAction("Index", "Ticket");
         }
     }
