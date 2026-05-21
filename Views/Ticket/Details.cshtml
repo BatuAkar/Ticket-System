@@ -184,7 +184,7 @@
             <div class="card chat-card mb-4">
                 <div class="chat-header p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                             <span class="badge bg-primary rounded-pill">Talep #@Model.Id</span>
                             @if (Model.Status == TicketSistemi.Models.TicketStatus.Acik)
                             {
@@ -197,6 +197,19 @@
                             else
                             {
                                 <span class="badge rounded-pill badge-kapandi px-3 py-1.5">Kapandı</span>
+                            }
+                            <span class="badge bg-info text-dark rounded-pill px-3 py-1.5">📂 @TicketSistemi.Models.EnumHelper.GetCategoryName(Model.Category)</span>
+                            @if (Model.Priority == TicketSistemi.Models.TicketPriority.Yuksek)
+                            {
+                                <span class="badge bg-danger rounded-pill px-3 py-1.5">🔥 Yüksek Öncelik</span>
+                            }
+                            else if (Model.Priority == TicketSistemi.Models.TicketPriority.Orta)
+                            {
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5">⚡ Orta Öncelik</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary rounded-pill px-3 py-1.5">❄️ Düşük Öncelik</span>
                             }
                         </div>
                         <h3 class="fw-bold mb-1 mt-2">@Model.Title</h3>
@@ -237,25 +250,41 @@
                                             @msg.Sender @(isMsgAdmin ? "(Destek Temsilcisi)" : "(Müşteri)")
                                         </span>
                                     </div>
-                                    <div style="white-space: pre-wrap; word-break: break-word;">@msg.Message</div>
+                                    <div style="word-break: break-word; line-height: 1.6;">@Html.Raw(msg.Message)</div>
+                                    
+                                    @if (!string.IsNullOrEmpty(msg.AttachmentPath))
+                                    {
+                                        <div class="mt-3 p-2 rounded border bg-light bg-opacity-10 d-flex flex-column gap-2" style="max-width: 320px;">
+                                            @{
+                                                var ext = System.IO.Path.GetExtension(msg.AttachmentPath).ToLowerInvariant();
+                                                var isImage = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".webp";
+                                            }
+                                            @if (isImage)
+                                            {
+                                                <a href="@msg.AttachmentPath" target="_blank" title="Görseli yeni sekmede aç">
+                                                    <img src="@msg.AttachmentPath" alt="@msg.AttachmentFileName" class="img-fluid rounded border shadow-sm" style="max-height: 200px; object-fit: contain;" />
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="fs-4">📄</span>
+                                                    <div class="overflow-hidden" style="max-width: 250px;">
+                                                        <span class="d-block text-truncate fw-semibold small @(isMsgAdmin ? "text-white" : "text-dark")">@msg.AttachmentFileName</span>
+                                                        <a href="@msg.AttachmentPath" download class="btn btn-sm btn-light border py-1 px-2 mt-1" style="font-size: 0.75rem;">
+                                                            ⬇️ Dosyayı İndir
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
                                     <div class="bubble-meta justify-content-end">
                                         <span>🕒 @msg.SentDate.ToString("dd MMM HH:mm")</span>
                                     </div>
                                 </div>
                             }
-                        }
-                        else
-                        {
-                            <div class="bubble bubble-left">
-                                <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom border-light border-opacity-10">
-                                    <div class="avatar avatar-user">@((Model.CustomerName ?? "U").Substring(0, Math.Min(2, (Model.CustomerName ?? "U").Length)).ToUpper())</div>
-                                    <span class="fw-bold small">@(Model.CustomerName ?? "Müşteri") (Müşteri)</span>
-                                </div>
-                                <div style="white-space: pre-wrap;">@Model.Description</div>
-                                <div class="bubble-meta">
-                                    <span>🕒 @Model.CreatedDate.ToString("HH:mm")</span>
-                                </div>
-                            </div>
                         }
                     </div>
                 </div>
@@ -267,14 +296,47 @@
                     <h5 class="fw-bold mb-0">@(User.IsInRole("Admin") ? "Destek Talebini Yanıtla" : "Destek Ekibine Yazın")</h5>
                 </div>
                 <div class="card-body p-4">
-                    <form asp-action="Details" method="post">
+                    <form asp-action="Details" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@Model.Id" />
                         
+                        <!-- Quill Rich Text Editor -->
                         <div class="mb-3">
-                            <label for="message" class="form-label fw-bold text-secondary">Mesajınız</label>
-                            <textarea name="message" id="message" rows="4" class="form-control form-control-custom" placeholder="Buraya yanıtınızı veya sormak istediğiniz şeyi yazın..." required></textarea>
+                            <label class="form-label fw-bold text-secondary">Mesajınız</label>
+                            <input type="hidden" name="message" id="messageInput" />
+                            <div id="editor-container" style="height: 180px; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; background-color: var(--input-bg); color: var(--input-color);"></div>
                         </div>
+
+                        <!-- Attachment Input -->
+                        <div class="mb-3">
+                            <label for="attachment" class="form-label fw-bold text-secondary">Dosya Eki (Opsiyonel)</label>
+                            <input type="file" name="attachment" id="attachment" class="form-control form-control-custom" />
+                            <div class="form-text small text-muted">Desteklenen formatlar: Resim (PNG, JPG, GIF), PDF, TXT, ZIP vb. (Maks 10MB)</div>
+                        </div>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label for="category" class="form-label fw-bold text-secondary">Kategori Güncelle</label>
+                                    <select name="category" id="category" class="form-select form-control-custom" style="cursor: pointer;">
+                                        @foreach (var cat in Enum.GetValues<TicketSistemi.Models.TicketCategory>())
+                                        {
+                                            <!option value="@((int)cat)" @(Model.Category == cat ? "selected" : "")>@TicketSistemi.Models.EnumHelper.GetCategoryName(cat)</!option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="priority" class="form-label fw-bold text-secondary">Öncelik Güncelle</label>
+                                    <select name="priority" id="priority" class="form-select form-control-custom" style="cursor: pointer;">
+                                        @foreach (var pri in Enum.GetValues<TicketSistemi.Models.TicketPriority>())
+                                        {
+                                            <!option value="@((int)pri)" @(Model.Priority == pri ? "selected" : "")>@TicketSistemi.Models.EnumHelper.GetPriorityName(pri)</!option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        }
 
                         <div class="row align-items-center g-3">
                             @if (User.IsInRole("Admin"))
@@ -384,6 +446,21 @@
 </div>
 
 @section Scripts {
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <style>
+        .ql-toolbar.ql-snow {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+        }
+        .ql-container.ql-snow {
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            border-color: var(--input-border);
+        }
+    </style>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Auto scroll chat body to the bottom
@@ -391,6 +468,40 @@
             if (chatBody) {
                 chatBody.scrollTop = chatBody.scrollHeight;
             }
+
+            // Quill initialization
+            var quill = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Cevabınızı buraya yazabilirsiniz...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['code-block', 'blockquote'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            var form = document.querySelector('#replyForm form');
+            form.onsubmit = function () {
+                var messageInput = document.querySelector('#messageInput');
+                var htmlContent = quill.root.innerHTML;
+                
+                // If the user entered nothing, check if there is an attachment
+                var fileInput = document.querySelector('#attachment');
+                var hasAttachment = fileInput && fileInput.files && fileInput.files.length > 0;
+                
+                if (quill.getText().trim().length === 0) {
+                    messageInput.value = '';
+                    if (!hasAttachment) {
+                        alert('Lütfen bir mesaj yazın veya bir dosya ekleyin.');
+                        return false;
+                    }
+                } else {
+                    messageInput.value = htmlContent;
+                }
+            };
         });
     </script>
 }

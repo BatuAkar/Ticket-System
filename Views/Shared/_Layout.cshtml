@@ -182,6 +182,12 @@
                             <li class="nav-item">
                                 <a class="nav-link nav-link-custom text-white" asp-controller="Ticket" asp-action="Create">Yeni Talep Aç</a>
                             </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link nav-link-custom text-white" asp-controller="Ticket" asp-action="Dashboard">📊 İstatistik Paneli</a>
+                                </li>
+                            }
                         </ul>
                     }
                     else

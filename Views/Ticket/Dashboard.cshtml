@@ -1,0 +1,318 @@
+@model dynamic
+@{
+    ViewData["Title"] = "İstatistik Paneli";
+}
+
+<div class="container py-3">
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1 mt-2">📊 İstatistik ve Analiz Paneli</h2>
+        <p class="text-secondary small mb-0">Sistemdeki destek taleplerinin genel durumunu, kategori ve öncelik dağılımlarını anlık olarak izleyin.</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Stat Card 1 -->
+        <div class="col-md-3">
+            <div class="card card-custom h-100 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary fw-semibold small">Toplam Talep</span>
+                    <span class="fs-4">🎫</span>
+                </div>
+                <h2 class="fw-bold mb-1">@ViewBag.TotalTickets</h2>
+                <span class="text-muted small">Sisteme kayıtlı tüm biletler</span>
+            </div>
+        </div>
+
+        <!-- Stat Card 2 -->
+        <div class="col-md-3">
+            <div class="card card-custom h-100 p-3 border-start border-amber border-4" style="border-left: 4px solid #f59e0b !important;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary fw-semibold small">Açık Talepler</span>
+                    <span class="fs-4">🔥</span>
+                </div>
+                <h2 class="fw-bold mb-1 text-warning">@ViewBag.OpenCount</h2>
+                <span class="text-muted small">İşlem bekleyen aktif biletler</span>
+            </div>
+        </div>
+
+        <!-- Stat Card 3 -->
+        <div class="col-md-3">
+            <div class="card card-custom h-100 p-3 border-start border-success border-4" style="border-left: 4px solid #10b981 !important;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary fw-semibold small">Çözülen Talepler</span>
+                    <span class="fs-4">✅</span>
+                </div>
+                <h2 class="fw-bold mb-1 text-success">@ViewBag.SolvedCount</h2>
+                <span class="text-muted small">Çözüme kavuşturulmuş biletler</span>
+            </div>
+        </div>
+
+        <!-- Stat Card 4 -->
+        <div class="col-md-3">
+            <div class="card card-custom h-100 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary fw-semibold small">Ort. Yanıt Sayısı</span>
+                    <span class="fs-4">💬</span>
+                </div>
+                <h2 class="fw-bold mb-1 text-primary">@ViewBag.AvgReplies</h2>
+                <span class="text-muted small">Bilet başına düşen ortalama mesaj</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row g-4 mb-4">
+        <!-- Category Chart -->
+        <div class="col-lg-6">
+            <div class="card card-custom p-4 h-100">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <span>📂</span> Kategori Dağılımı
+                </h5>
+                <div class="chart-container" style="position: relative; height: 300px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Chart -->
+        <div class="col-lg-6">
+            <div class="card card-custom p-4 h-100">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <span>⚡</span> Öncelik Seviyeleri
+                </h5>
+                <div class="chart-container" style="position: relative; height: 300px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row g-4">
+        <!-- Daily Trend Chart -->
+        <div class="col-12">
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <span>📈</span> Son 7 Günlük Bilet Trendi
+                </h5>
+                <div class="chart-container" style="position: relative; height: 350px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Theme check for charts color adjustment
+            const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+            const textColor = isDarkMode ? '#94a3b8' : '#64748b';
+
+            // Raw stats from ViewBag
+            const categoryStats = @Html.Raw(Json.Serialize(ViewBag.CategoryStats));
+            const priorityStats = @Html.Raw(Json.Serialize(ViewBag.PriorityStats));
+            const trendStats = @Html.Raw(Json.Serialize(ViewBag.TrendStats));
+
+            // Parse category data
+            const categoryLabels = Object.keys(categoryStats);
+            const categoryData = Object.values(categoryStats);
+
+            // Parse priority data
+            const priorityLabels = Object.keys(priorityStats);
+            const priorityData = Object.values(priorityStats);
+
+            // Parse trend data
+            const trendLabels = Object.keys(trendStats);
+            const trendData = Object.values(trendStats);
+
+            // 1. Category Chart (Doughnut)
+            const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+            new Chart(ctxCategory, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: categoryData,
+                        backgroundColor: [
+                            '#6366f1', // Indigo
+                            '#3b82f6', // Blue
+                            '#10b981', // Emerald
+                            '#f59e0b'  // Amber
+                        ],
+                        borderWidth: isDarkMode ? 2 : 0,
+                        borderColor: isDarkMode ? '#1e293b' : '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: textColor,
+                                font: {
+                                    family: 'Outfit',
+                                    size: 13
+                                },
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Priority Chart (Bar)
+            const ctxPriority = document.getElementById('priorityChart').getContext('2d');
+            new Chart(ctxPriority, {
+                type: 'bar',
+                data: {
+                    labels: priorityLabels,
+                    datasets: [{
+                        label: 'Bilet Sayısı',
+                        data: priorityData,
+                        backgroundColor: [
+                            '#64748b', // Slate for Low
+                            '#6366f1', // Indigo for Medium
+                            '#ef4444'  // Red for High
+                        ],
+                        borderRadius: 8,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: {
+                                    family: 'Outfit'
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: {
+                                    family: 'Outfit'
+                                },
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Trend Chart (Line)
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Yeni Oluşturulan Biletler',
+                        data: trendData,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textColor,
+                                font: {
+                                    family: 'Outfit'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: {
+                                    family: 'Outfit'
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: {
+                                    family: 'Outfit'
+                                },
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Observe theme changes to dynamically update grid/text colors
+            const observer = new MutationObserver(() => {
+                const dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                const newGrid = dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+                const newText = dark ? '#94a3b8' : '#64748b';
+                
+                // Update all charts
+                Chart.instances.forEach(chart => {
+                    if (chart.options.scales) {
+                        if (chart.options.scales.x && chart.options.scales.x.ticks) {
+                            chart.options.scales.x.ticks.color = newText;
+                        }
+                        if (chart.options.scales.y) {
+                            if (chart.options.scales.y.grid) {
+                                chart.options.scales.y.grid.color = newGrid;
+                            }
+                            if (chart.options.scales.y.ticks) {
+                                chart.options.scales.y.ticks.color = newText;
+                            }
+                        }
+                    }
+                    if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                        chart.options.plugins.legend.labels.color = newText;
+                    }
+                    chart.update();
+                });
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+        });
+    </script>
+}

@@ -163,8 +163,24 @@
                 </button>
                 <!-- Search Input -->
                 <div class="position-relative">
-                    <input type="text" id="instantSearch" class="form-control form-control-custom" placeholder="🔍 Taleplerde ara..." style="min-width: 240px; border-radius: 10px;" />
+                    <input type="text" id="instantSearch" class="form-control form-control-custom" placeholder="🔍 Taleplerde ara..." style="min-width: 220px; border-radius: 10px;" />
                 </div>
+                <!-- Category Filter -->
+                <select id="categoryFilter" class="form-select form-control-custom" style="min-width: 140px; border-radius: 10px; cursor: pointer;">
+                    <option value="">Tümü (Kategori)</option>
+                    @foreach (var cat in Enum.GetValues<TicketSistemi.Models.TicketCategory>())
+                    {
+                        <option value="@TicketSistemi.Models.EnumHelper.GetCategoryName(cat).ToUpper()">@TicketSistemi.Models.EnumHelper.GetCategoryName(cat)</option>
+                    }
+                </select>
+                <!-- Priority Filter -->
+                <select id="priorityFilter" class="form-select form-control-custom" style="min-width: 140px; border-radius: 10px; cursor: pointer;">
+                    <option value="">Tümü (Öncelik)</option>
+                    @foreach (var pri in Enum.GetValues<TicketSistemi.Models.TicketPriority>())
+                    {
+                        <option value="@TicketSistemi.Models.EnumHelper.GetPriorityName(pri).ToUpper()">@TicketSistemi.Models.EnumHelper.GetPriorityName(pri)</option>
+                    }
+                </select>
                 <!-- Status Filter Dropdown -->
                 <select id="statusFilter" class="form-select form-control-custom" style="min-width: 140px; border-radius: 10px; cursor: pointer;">
                     <option value="">Tümü (Durum)</option>
@@ -181,6 +197,8 @@
                     <tr>
                         <th class="ps-4 py-3">TALEP ID</th>
                         <th class="py-3">KONU BAŞLIĞI</th>
+                        <th class="py-3">KATEGORİ</th>
+                        <th class="py-3">ÖNCELİK</th>
                         @if (User.IsInRole("Admin"))
                         {
                             <th class="py-3">MÜŞTERİ</th>
@@ -195,7 +213,7 @@
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="@(User.IsInRole("Admin") ? 7 : 6)" class="text-center py-5 text-muted">
+                            <td colspan="@(User.IsInRole("Admin") ? 9 : 8)" class="text-center py-5 text-muted">
                                 <span class="fs-2 d-block mb-3">🎈</span> Destek talebi bulunmuyor.
                             </td>
                         </tr>
@@ -204,15 +222,33 @@
                     {
                         @foreach (var item in Model)
                         {
+                            var cleanDesc = string.IsNullOrEmpty(item.Description) ? string.Empty : System.Text.RegularExpressions.Regex.Replace(item.Description, "<.*?>", string.Empty);
                             <tr>
                                 <td class="ps-4 fw-bold" style="color: #4f46e5;">#@item.Id</td>
-                                <td>
+                                <td class="title-cell">
                                     <span class="fw-bold d-block">@item.Title</span>
-                                    <small class="text-muted d-inline-block text-truncate" style="max-width: 320px;">@item.Description</small>
+                                    <small class="text-muted d-inline-block text-truncate" style="max-width: 250px;">@cleanDesc</small>
+                                </td>
+                                <td class="category-cell">
+                                    <span class="text-secondary fw-semibold">@TicketSistemi.Models.EnumHelper.GetCategoryName(item.Category)</span>
+                                </td>
+                                <td class="priority-cell">
+                                    @if(item.Priority == TicketSistemi.Models.TicketPriority.Dusuk)
+                                    {
+                                        <span class="badge bg-secondary px-2.5 py-1.5 rounded-pill">Düşük</span>
+                                    }
+                                    else if(item.Priority == TicketSistemi.Models.TicketPriority.Orta)
+                                    {
+                                        <span class="badge px-2.5 py-1.5 rounded-pill text-white" style="background-color: #6366f1;">Orta</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger px-2.5 py-1.5 rounded-pill text-white">Yüksek</span>
+                                    }
                                 </td>
                                 @if (User.IsInRole("Admin"))
                                 {
-                                    <td class="fw-semibold text-secondary">@item.CustomerName</td>
+                                    <td class="customer-cell fw-semibold text-secondary">@item.CustomerName</td>
                                 }
                                 <td class="text-muted">@item.CreatedDate.ToString("dd MMM yyyy HH:mm")</td>
                                 <td>
@@ -344,11 +380,15 @@
             // Instant Search & Client-side Filtering
             const searchInput = document.getElementById("instantSearch");
             const statusSelect = document.getElementById("statusFilter");
+            const categorySelect = document.getElementById("categoryFilter");
+            const prioritySelect = document.getElementById("priorityFilter");
             const tableRows = document.querySelectorAll(".custom-table tbody tr");
 
             function filterTable() {
                 const searchText = searchInput.value.toLowerCase().trim();
                 const selectedStatus = statusSelect.value;
+                const selectedCategory = categorySelect.value;
+                const selectedPriority = prioritySelect.value;
 
                 tableRows.forEach(row => {
                     // Check if it's the "No tickets" empty row
@@ -358,15 +398,26 @@
 
                     // Extract text content
                     const idText = row.querySelector("td:first-child").textContent.toLowerCase();
-                    const titleAndDescText = row.querySelector("td:nth-child(2)").textContent.toLowerCase();
+                    const titleAndDescText = row.querySelector("td.title-cell").textContent.toLowerCase();
                     
                     let customerText = "";
-                    const customerTd = row.querySelector("td.fw-semibold.text-secondary") || row.querySelector("td:nth-child(3)");
-                    if (customerTd && @(User.IsInRole("Admin") ? "true" : "false")) {
+                    const customerTd = row.querySelector("td.customer-cell");
+                    if (customerTd) {
                         customerText = customerTd.textContent.toLowerCase();
                     }
 
-                    // Locate status text
+                    let categoryText = "";
+                    const categoryCell = row.querySelector(".category-cell");
+                    if (categoryCell) {
+                        categoryText = categoryCell.textContent.trim().toUpperCase();
+                    }
+
+                    let priorityText = "";
+                    const priorityCell = row.querySelector(".priority-cell");
+                    if (priorityCell) {
+                        priorityText = priorityCell.textContent.trim().toUpperCase();
+                    }
+
                     let statusText = "";
                     const statusBadge = row.querySelector(".status-cell .badge");
                     if (statusBadge) {
@@ -374,15 +425,25 @@
                     }
 
                     const matchesSearch = idText.includes(searchText) || 
-                                          titleAndDescText.includes(searchText) || 
-                                          customerText.includes(searchText);
+                                           titleAndDescText.includes(searchText) || 
+                                           customerText.includes(searchText);
 
                     let matchesStatus = true;
                     if (selectedStatus) {
                         matchesStatus = statusText === selectedStatus;
                     }
 
-                    if (matchesSearch && matchesStatus) {
+                    let matchesCategory = true;
+                    if (selectedCategory) {
+                        matchesCategory = categoryText === selectedCategory;
+                    }
+
+                    let matchesPriority = true;
+                    if (selectedPriority) {
+                        matchesPriority = priorityText === selectedPriority;
+                    }
+
+                    if (matchesSearch && matchesStatus && matchesCategory && matchesPriority) {
                         row.style.display = "";
                     } else {
                         row.style.display = "none";
@@ -392,6 +453,8 @@
 
             if (searchInput) searchInput.addEventListener("input", filterTable);
             if (statusSelect) statusSelect.addEventListener("change", filterTable);
+            if (categorySelect) categorySelect.addEventListener("change", filterTable);
+            if (prioritySelect) prioritySelect.addEventListener("change", filterTable);
 
             // Instant Stat Card Filtering
             document.querySelectorAll(".stat-card-link").forEach(link => {

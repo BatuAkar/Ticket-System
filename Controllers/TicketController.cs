@@ -6,6 +6,11 @@ using System.Linq;
 using Microsoft.AspNetCore.SignalR;
 using TicketSistemi.Hubs;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Threading.Tasks;
+using System;
 
 namespace TicketSistemi.Controllers
 {
@@ -14,11 +19,37 @@ namespace TicketSistemi.Controllers
     {
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly ILogger<TicketController> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public TicketController(IHubContext<NotificationHub> hubContext, ILogger<TicketController> logger)
+        public TicketController(IHubContext<NotificationHub> hubContext, ILogger<TicketController> logger, IWebHostEnvironment env)
         {
             _hubContext = hubContext;
             _logger = logger;
+            _env = env;
+        }
+
+        private async Task<(string? path, string? fileName)> SaveAttachmentAsync(IFormFile? file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return (null, null);
+            }
+
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
+
+            return ("/uploads/" + uniqueFileName, file.FileName);
         }
 
         // 1. Tüm Ticket'ları Listeleme Ekranı
@@ -64,7 +95,7 @@ namespace TicketSistemi.Controllers
         // 3. Form Doldurulup Gönderildiğinde Çalışacak Kısım (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Ticket newTicket)
+        public async Task<IActionResult> Create(Ticket newTicket, IFormFile? attachment)
         {
             var username = User.Identity?.Name;
             if (string.IsNullOrEmpty(username))
@@ -78,6 +109,10 @@ namespace TicketSistemi.Controllers
 
             if (ModelState.IsValid)
             {
+                var (attachmentPath, attachmentFileName) = await SaveAttachmentAsync(attachment);
+                newTicket.AttachmentPath = attachmentPath;
+                newTicket.AttachmentFileName = attachmentFileName;
+
                 var tickets = JsonDbManager.GetTickets();
                 
                 newTicket.Id = tickets.Any() ? tickets.Max(t => t.Id) + 1 : 1;
@@ -85,7 +120,7 @@ namespace TicketSistemi.Controllers
                 tickets.Add(newTicket);
                 JsonDbManager.SaveTickets(tickets);
 
-                _logger.LogInformation("Yeni destek talebi oluşturuldu. ID: {Id}, Başlık: {Title}, Müşteri: {CustomerName}", newTicket.Id, newTicket.Title, username);
+                _logger.LogInformation("Yeni destek talebi oluşturuldu. ID: {Id}, Başlık: {Title}, Müşteri: {CustomerName}, Ek: {AttachmentName}", newTicket.Id, newTicket.Title, username, attachmentFileName);
 
                 // SignalR Live Notification
                 _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Yeni bir destek talebi oluşturuldu! Konu: {newTicket.Title}", "Admin");
@@ -179,7 +214,9 @@ namespace TicketSistemi.Controllers
                     Sender = ticket.CustomerName,
                     Role = "User",
                     Message = ticket.Description,
-                    SentDate = ticket.CreatedDate
+                    SentDate = ticket.CreatedDate,
+                    AttachmentPath = ticket.AttachmentPath,
+                    AttachmentFileName = ticket.AttachmentFileName
                 });
 
                 // Eğer temsilci cevabı varsa, onu da ekleyelim
@@ -203,7 +240,7 @@ namespace TicketSistemi.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Details(int id, string message, TicketStatus? status)
+        public async Task<IActionResult> Details(int id, string message, TicketStatus? status, IFormFile? attachment, TicketCategory? category, TicketPriority? priority)
         {
             var username = User.Identity?.Name;
             if (string.IsNullOrEmpty(username))
@@ -237,7 +274,9 @@ namespace TicketSistemi.Controllers
                     Sender = ticket.CustomerName,
                     Role = "User",
                     Message = ticket.Description,
-                    SentDate = ticket.CreatedDate
+                    SentDate = ticket.CreatedDate,
+                    AttachmentPath = ticket.AttachmentPath,
+                    AttachmentFileName = ticket.AttachmentFileName
                 });
                 if (!string.IsNullOrEmpty(ticket.SupportReply))
                 {
@@ -251,24 +290,41 @@ namespace TicketSistemi.Controllers
                 }
             }
 
+            // Kategori ve Öncelik güncellemeleri (Yalnızca Admin)
+            if (isAdmin)
+            {
+                if (category.HasValue)
+                {
+                    ticket.Category = category.Value;
+                }
+                if (priority.HasValue)
+                {
+                    ticket.Priority = priority.Value;
+                }
+            }
+
             var oldStatus = ticket.Status;
 
-            // Mesaj içeriği boş değilse yeni mesaj ekle
-            if (!string.IsNullOrWhiteSpace(message))
+            // Mesaj içeriği veya attachment varsa yeni mesaj ekle
+            if (!string.IsNullOrWhiteSpace(message) || (attachment != null && attachment.Length > 0))
             {
+                var (attachmentPath, attachmentFileName) = await SaveAttachmentAsync(attachment);
+
                 var newMessage = new TicketMessage
                 {
                     Sender = username,
                     Role = isAdmin ? "Admin" : "User",
-                    Message = message.Trim(),
-                    SentDate = DateTime.Now
+                    Message = !string.IsNullOrWhiteSpace(message) ? message.Trim() : "",
+                    SentDate = DateTime.Now,
+                    AttachmentPath = attachmentPath,
+                    AttachmentFileName = attachmentFileName
                 };
                 ticket.Messages.Add(newMessage);
 
                 // Geriye dönük uyumluluk alanlarını da güncelle
                 if (isAdmin)
                 {
-                    ticket.SupportReply = message.Trim();
+                    ticket.SupportReply = newMessage.Message;
                     // Eğer daha önce üstlenilmemişse, otomatik olarak cevaplayan admini ata
                     if (string.IsNullOrEmpty(ticket.AssignedAgent))
                     {
@@ -284,7 +340,7 @@ namespace TicketSistemi.Controllers
                     }
                 }
 
-                _logger.LogInformation("Destek talebine yanıt yazıldı. ID: {Id}, Yazan: {Username}, Rol: {Role}", id, username, isAdmin ? "Admin" : "User");
+                _logger.LogInformation("Destek talebine yanıt yazıldı. ID: {Id}, Yazan: {Username}, Rol: {Role}, Ek: {AttachmentName}", id, username, isAdmin ? "Admin" : "User", attachmentFileName);
             }
 
             // Durum güncellemesi yapılmışsa uygula
@@ -305,7 +361,7 @@ namespace TicketSistemi.Controllers
             JsonDbManager.SaveTickets(tickets);
 
             // SignalR Canlı Bildirimleri
-            if (!string.IsNullOrWhiteSpace(message))
+            if (!string.IsNullOrWhiteSpace(message) || (attachment != null && attachment.Length > 0))
             {
                 if (isAdmin)
                 {
@@ -325,6 +381,68 @@ namespace TicketSistemi.Controllers
             }
 
             return RedirectToAction("Details", new { id = id });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Dashboard()
+        {
+            var tickets = JsonDbManager.GetTickets();
+
+            int totalTickets = tickets.Count;
+            int openCount = tickets.Count(t => t.Status == TicketStatus.Acik);
+            int solvedCount = tickets.Count(t => t.Status == TicketStatus.Cozuldu);
+            int closedCount = tickets.Count(t => t.Status == TicketStatus.Kapandi);
+
+            var categoryStats = tickets.GroupBy(t => t.Category)
+                                       .ToDictionary(g => EnumHelper.GetCategoryName(g.Key), g => g.Count());
+            
+            foreach (TicketCategory cat in Enum.GetValues(typeof(TicketCategory)))
+            {
+                var catName = EnumHelper.GetCategoryName(cat);
+                if (!categoryStats.ContainsKey(catName))
+                {
+                    categoryStats[catName] = 0;
+                }
+            }
+
+            var priorityStats = tickets.GroupBy(t => t.Priority)
+                                       .ToDictionary(g => EnumHelper.GetPriorityName(g.Key), g => g.Count());
+            
+            foreach (TicketPriority pri in Enum.GetValues(typeof(TicketPriority)))
+            {
+                var priName = EnumHelper.GetPriorityName(pri);
+                if (!priorityStats.ContainsKey(priName))
+                {
+                    priorityStats[priName] = 0;
+                }
+            }
+
+            var trendStats = new Dictionary<string, int>();
+            var today = DateTime.Today;
+            for (int i = 6; i >= 0; i--)
+            {
+                var date = today.AddDays(-i);
+                var dateStr = date.ToString("dd.MM.yyyy");
+                trendStats[dateStr] = tickets.Count(t => t.CreatedDate.Date == date);
+            }
+
+            double avgReplies = 0;
+            if (totalTickets > 0)
+            {
+                avgReplies = tickets.Average(t => t.Messages != null ? Math.Max(0, t.Messages.Count - 1) : 0);
+            }
+
+            ViewBag.TotalTickets = totalTickets;
+            ViewBag.OpenCount = openCount;
+            ViewBag.SolvedCount = solvedCount;
+            ViewBag.ClosedCount = closedCount;
+            ViewBag.CategoryStats = categoryStats;
+            ViewBag.PriorityStats = priorityStats;
+            ViewBag.TrendStats = trendStats;
+            ViewBag.AvgReplies = Math.Round(avgReplies, 1);
+
+            return View();
         }
     }
 }
