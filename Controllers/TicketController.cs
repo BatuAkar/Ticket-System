@@ -42,12 +42,6 @@ namespace TicketSistemi.Controllers
             ViewBag.SolvedCount = tickets.Count(t => t.Status == TicketStatus.Cozuldu);
             ViewBag.ClosedCount = tickets.Count(t => t.Status == TicketStatus.Kapandi);
 
-            // LINQ ile filtreleme (Eğer bir durum seçilmişse)
-            if (status.HasValue)
-            {
-                tickets = tickets.Where(t => t.Status == status.Value).ToList();
-            }
-
             // Tarihe göre ters sıralıyoruz.
             var sortedTickets = tickets.OrderByDescending(t => t.CreatedDate).ToList();
             
@@ -97,71 +91,12 @@ namespace TicketSistemi.Controllers
             return View(newTicket);
         }
 
-        // 4. Admin Cevaplama Ekranı (GET)
+        // 4. Admin Cevaplama Ekranı (GET) - Detay sayfasına yönlendirildi
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult Reply(int id)
         {
-            var tickets = JsonDbManager.GetTickets();
-            var ticket = tickets.FirstOrDefault(t => t.Id == id);
-            
-            if (ticket == null) return NotFound();
-            
-            return View(ticket);
-        }
-
-        // 5. Admin Cevabı Kaydettiğinde (POST)
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        [ValidateAntiForgeryToken]
-        public IActionResult Reply(int id, string supportReply, TicketStatus status)
-        {
-            var tickets = JsonDbManager.GetTickets();
-            var ticketIndex = tickets.FindIndex(t => t.Id == id);
-            
-            if (ticketIndex == -1) return NotFound();
-            
-            var ticket = tickets[ticketIndex];
-            ticket.SupportReply = supportReply;
-            ticket.Status = status;
-            
-            // Eğer daha önce üstlenilmemişse, otomatik olarak cevaplayan admini ata
-            if (string.IsNullOrEmpty(ticket.AssignedAgent))
-            {
-                ticket.AssignedAgent = User.Identity?.Name ?? "Destek Elemanı";
-            }
-            
-            // Geriye dönük uyumluluk ve yeni mesaj yapısı
-            if (ticket.Messages == null)
-            {
-                ticket.Messages = new List<TicketMessage>();
-            }
-            if (!ticket.Messages.Any())
-            {
-                ticket.Messages.Add(new TicketMessage
-                {
-                    Sender = ticket.CustomerName,
-                    Role = "User",
-                    Message = ticket.Description,
-                    SentDate = ticket.CreatedDate
-                });
-            }
-
-            // Destek elemanının cevabını ekle
-            ticket.Messages.Add(new TicketMessage
-            {
-                Sender = ticket.AssignedAgent,
-                Role = "Admin",
-                Message = supportReply,
-                SentDate = DateTime.Now
-            });
-
-            JsonDbManager.SaveTickets(tickets);
-
-            // SignalR Live Notification
-            _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebiniz yanıtlandı! Konu: {ticket.Title}", "User");
-            
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", new { id = id });
         }
 
         // 6. Talebi Üstlenme (POST)

@@ -253,7 +253,7 @@
                                                     </button>
                                                 </form>
                                             }
-                                            <a asp-action="Reply" asp-route-id="@item.Id" class="btn btn-sm btn-primary px-3 fw-bold rounded-pill shadow-sm">
+                                            <a asp-action="Details" asp-route-id="@item.Id" asp-fragment="replyForm" class="btn btn-sm btn-primary px-3 fw-bold rounded-pill shadow-sm">
                                                 🛠️ Cevapla
                                             </a>
                                             <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="m-0" onsubmit="return confirm('Bu destek talebini silmek istediğinize emin misiniz?');">

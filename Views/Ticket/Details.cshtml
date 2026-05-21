@@ -233,7 +233,7 @@
                                         <div class="avatar @(isMsgAdmin ? "avatar-agent" : "avatar-user")">
                                             @((msg.Sender ?? "U").Substring(0, Math.Min(2, (msg.Sender ?? "U").Length)).ToUpper())
                                         </div>
-                                        <span class="fw-bold small @(isMsgAdmin ? "text-white" : "text-slate-800")">
+                                        <span class="fw-bold small @(isMsgAdmin ? "text-white" : "")">
                                             @msg.Sender @(isMsgAdmin ? "(Destek Temsilcisi)" : "(Müşteri)")
                                         </span>
                                     </div>
@@ -249,7 +249,7 @@
                             <div class="bubble bubble-left">
                                 <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom border-light border-opacity-10">
                                     <div class="avatar avatar-user">@((Model.CustomerName ?? "U").Substring(0, Math.Min(2, (Model.CustomerName ?? "U").Length)).ToUpper())</div>
-                                    <span class="fw-bold text-slate-800 small">@(Model.CustomerName ?? "Müşteri") (Müşteri)</span>
+                                    <span class="fw-bold small">@(Model.CustomerName ?? "Müşteri") (Müşteri)</span>
                                 </div>
                                 <div style="white-space: pre-wrap;">@Model.Description</div>
                                 <div class="bubble-meta">
@@ -262,7 +262,7 @@
             </div>
 
             <!-- Reply Form -->
-            <div class="card chat-card">
+            <div class="card chat-card" id="replyForm">
                 <div class="card-header bg-transparent border-0 pt-4 px-4">
                     <h5 class="fw-bold mb-0">@(User.IsInRole("Admin") ? "Destek Talebini Yanıtla" : "Destek Ekibine Yazın")</h5>
                 </div>
