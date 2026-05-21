@@ -33,7 +33,7 @@ namespace TicketSistemi.Controllers
             // Eğer normal kullanıcı ise sadece kendi biletlerini süzüyoruz
             if (!isAdmin)
             {
-                tickets = tickets.Where(t => t.CustomerName == username).ToList();
+                tickets = tickets.Where(t => string.Equals(t.CustomerName, username, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             // Sayımları filtrelemeden bağımsız olarak, yetki sınırları dahilinde hesaplayıp ViewBag'e atıyoruz
@@ -189,7 +189,7 @@ namespace TicketSistemi.Controllers
 
             // Güvenlik kontrolü: Normal kullanıcı sadece kendi biletini görebilir
             var isAdmin = User.IsInRole("Admin");
-            if (!isAdmin && ticket.CustomerName != username)
+            if (!isAdmin && !string.Equals(ticket.CustomerName, username, StringComparison.OrdinalIgnoreCase))
             {
                 return Forbid();
             }

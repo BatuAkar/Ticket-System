@@ -223,7 +223,7 @@
                                         <span class="text-muted small">Atanmadı</span>
                                     }
                                 </td>
-                                <td>
+                                <td class="status-cell">
                                     @if(item.Status == TicketSistemi.Models.TicketStatus.Acik)
                                     {
                                         <span class="badge rounded-pill badge-acik px-3 py-2">Açık</span>
@@ -364,8 +364,7 @@
 
                     // Locate status text
                     let statusText = "";
-                    // Status badge is on column 6 (0-indexed 5) for Admin, column 5 (0-indexed 4) for User
-                    const statusBadge = row.querySelector("td .badge");
+                    const statusBadge = row.querySelector(".status-cell .badge");
                     if (statusBadge) {
                         statusText = statusBadge.textContent.trim().toUpperCase(); // "AÇIK", "ÇÖZÜLDÜ", "KAPANDI"
                     }

@@ -155,8 +155,8 @@
                 <!-- User Question Bubble (Always Left) -->
                 <div class="bubble bubble-left">
                     <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom border-light border-opacity-10">
-                        <div class="avatar avatar-user">@Model.CustomerName.Substring(0, Math.Min(2, Model.CustomerName.Length)).ToUpper()</div>
-                        <span class="fw-bold text-slate-800 small">@Model.CustomerName (Müşteri)</span>
+                        <div class="avatar avatar-user">@((Model.CustomerName ?? "U").Substring(0, Math.Min(2, (Model.CustomerName ?? "U").Length)).ToUpper())</div>
+                        <span class="fw-bold text-slate-800 small">@(Model.CustomerName ?? "Müşteri") (Müşteri)</span>
                     </div>
                     <div style="white-space: pre-wrap;">@Model.Description</div>
                     <div class="bubble-meta">
