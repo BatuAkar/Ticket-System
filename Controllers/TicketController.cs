@@ -121,19 +121,45 @@ namespace TicketSistemi.Controllers
             
             if (ticketIndex == -1) return NotFound();
             
-            tickets[ticketIndex].SupportReply = supportReply;
-            tickets[ticketIndex].Status = status;
+            var ticket = tickets[ticketIndex];
+            ticket.SupportReply = supportReply;
+            ticket.Status = status;
             
             // Eğer daha önce üstlenilmemişse, otomatik olarak cevaplayan admini ata
-            if (string.IsNullOrEmpty(tickets[ticketIndex].AssignedAgent))
+            if (string.IsNullOrEmpty(ticket.AssignedAgent))
             {
-                tickets[ticketIndex].AssignedAgent = User.Identity?.Name ?? "Destek Elemanı";
+                ticket.AssignedAgent = User.Identity?.Name ?? "Destek Elemanı";
             }
             
+            // Geriye dönük uyumluluk ve yeni mesaj yapısı
+            if (ticket.Messages == null)
+            {
+                ticket.Messages = new List<TicketMessage>();
+            }
+            if (!ticket.Messages.Any())
+            {
+                ticket.Messages.Add(new TicketMessage
+                {
+                    Sender = ticket.CustomerName,
+                    Role = "User",
+                    Message = ticket.Description,
+                    SentDate = ticket.CreatedDate
+                });
+            }
+
+            // Destek elemanının cevabını ekle
+            ticket.Messages.Add(new TicketMessage
+            {
+                Sender = ticket.AssignedAgent,
+                Role = "Admin",
+                Message = supportReply,
+                SentDate = DateTime.Now
+            });
+
             JsonDbManager.SaveTickets(tickets);
 
             // SignalR Live Notification
-            _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebiniz yanıtlandı! Konu: {tickets[ticketIndex].Title}", "User");
+            _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebiniz yanıtlandı! Konu: {ticket.Title}", "User");
             
             return RedirectToAction("Index");
         }
@@ -194,32 +220,155 @@ namespace TicketSistemi.Controllers
                 return Forbid();
             }
 
+            // Geriye dönük uyumluluk için mesaj listesini doldur
+            if (ticket.Messages == null)
+            {
+                ticket.Messages = new List<TicketMessage>();
+            }
+
+            if (!ticket.Messages.Any())
+            {
+                // Müşterinin ilk mesajı (bilet açıklaması)
+                ticket.Messages.Add(new TicketMessage
+                {
+                    Sender = ticket.CustomerName,
+                    Role = "User",
+                    Message = ticket.Description,
+                    SentDate = ticket.CreatedDate
+                });
+
+                // Eğer temsilci cevabı varsa, onu da ekleyelim
+                if (!string.IsNullOrEmpty(ticket.SupportReply))
+                {
+                    ticket.Messages.Add(new TicketMessage
+                    {
+                        Sender = ticket.AssignedAgent ?? "Destek Elemanı",
+                        Role = "Admin",
+                        Message = ticket.SupportReply,
+                        SentDate = ticket.CreatedDate.AddMinutes(30)
+                    });
+                }
+
+                // Değişikliği veritabanına kaydet
+                JsonDbManager.SaveTickets(tickets);
+            }
+
             return View(ticket);
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public IActionResult Details(int id, string supportReply, TicketStatus status)
+        public IActionResult Details(int id, string message, TicketStatus? status)
         {
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             var tickets = JsonDbManager.GetTickets();
             var ticketIndex = tickets.FindIndex(t => t.Id == id);
 
             if (ticketIndex == -1) return NotFound();
 
-            tickets[ticketIndex].SupportReply = supportReply;
-            tickets[ticketIndex].Status = status;
+            var ticket = tickets[ticketIndex];
+            var isAdmin = User.IsInRole("Admin");
 
-            // Eğer daha önce üstlenilmemişse, otomatik olarak cevaplayan admini ata
-            if (string.IsNullOrEmpty(tickets[ticketIndex].AssignedAgent))
+            // Güvenlik Kontrolü: Admin olmayan kullanıcılar sadece kendi biletlerine yazabilir
+            if (!isAdmin && !string.Equals(ticket.CustomerName, username, StringComparison.OrdinalIgnoreCase))
             {
-                tickets[ticketIndex].AssignedAgent = User.Identity?.Name ?? "Destek Elemanı";
+                return Forbid();
+            }
+
+            // Geriye dönük uyumluluk için mesaj listesini doğrula
+            if (ticket.Messages == null)
+            {
+                ticket.Messages = new List<TicketMessage>();
+            }
+            if (!ticket.Messages.Any())
+            {
+                ticket.Messages.Add(new TicketMessage
+                {
+                    Sender = ticket.CustomerName,
+                    Role = "User",
+                    Message = ticket.Description,
+                    SentDate = ticket.CreatedDate
+                });
+                if (!string.IsNullOrEmpty(ticket.SupportReply))
+                {
+                    ticket.Messages.Add(new TicketMessage
+                    {
+                        Sender = ticket.AssignedAgent ?? "Destek Elemanı",
+                        Role = "Admin",
+                        Message = ticket.SupportReply,
+                        SentDate = ticket.CreatedDate.AddMinutes(30)
+                    });
+                }
+            }
+
+            // Mesaj içeriği boş değilse yeni mesaj ekle
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                var newMessage = new TicketMessage
+                {
+                    Sender = username,
+                    Role = isAdmin ? "Admin" : "User",
+                    Message = message.Trim(),
+                    SentDate = DateTime.Now
+                };
+                ticket.Messages.Add(newMessage);
+
+                // Geriye dönük uyumluluk alanlarını da güncelle
+                if (isAdmin)
+                {
+                    ticket.SupportReply = message.Trim();
+                    // Eğer daha önce üstlenilmemişse, otomatik olarak cevaplayan admini ata
+                    if (string.IsNullOrEmpty(ticket.AssignedAgent))
+                    {
+                        ticket.AssignedAgent = username;
+                    }
+                }
+                else
+                {
+                    // Müşteri yeni bir mesaj yazdığında, eğer bilet kapalıysa veya çözüldüyse "Açık" durumuna geri getirilebilir
+                    if (ticket.Status == TicketStatus.Cozuldu || ticket.Status == TicketStatus.Kapandi)
+                    {
+                        ticket.Status = TicketStatus.Acik;
+                    }
+                }
+            }
+
+            // Durum güncellemesi yapılmışsa uygula
+            if (status.HasValue)
+            {
+                // Müşteri de durum güncelleyebilir (örn: kapatabilir). Admin her şeyi yapabilir.
+                if (isAdmin || status.Value == TicketStatus.Kapandi || status.Value == TicketStatus.Cozuldu || status.Value == TicketStatus.Acik)
+                {
+                    ticket.Status = status.Value;
+                }
             }
 
             JsonDbManager.SaveTickets(tickets);
 
-            // SignalR Live Notification
-            _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebiniz yanıtlandı! Konu: {tickets[ticketIndex].Title}", "User");
+            // SignalR Canlı Bildirimleri
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                if (isAdmin)
+                {
+                    // Müşteriye bildirim gönder
+                    _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebinize yeni bir yanıt eklendi! Konu: {ticket.Title}", "User");
+                }
+                else
+                {
+                    // Admin'e bildirim gönder
+                    _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebe müşteri tarafından yeni yanıt yazıldı! Konu: {ticket.Title}", "Admin");
+                }
+            }
+            else if (status.HasValue)
+            {
+                string statusName = status.Value == TicketStatus.Acik ? "Açık" : status.Value == TicketStatus.Cozuldu ? "Çözüldü" : "Kapalı";
+                _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talep durumu güncellendi ({statusName}): {ticket.Title}", isAdmin ? "User" : "Admin");
+            }
 
             return RedirectToAction("Details", new { id = id });
         }

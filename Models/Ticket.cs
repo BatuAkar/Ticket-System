@@ -20,5 +20,16 @@ namespace TicketSistemi.Models
         public TicketStatus Status { get; set; } = TicketStatus.Acik;
         public string? SupportReply { get; set; } 
         public string? AssignedAgent { get; set; }
+
+        // Mesaj geçmişi
+        public List<TicketMessage> Messages { get; set; } = new List<TicketMessage>();
+    }
+
+    public class TicketMessage
+    {
+        public string Sender { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty; // "Admin" or "User"
+        public string Message { get; set; } = string.Empty;
+        public DateTime SentDate { get; set; } = DateTime.Now;
     }
 }

@@ -99,6 +99,74 @@
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Timeline styles */
+    .timeline {
+        position: relative;
+        padding-left: 20px;
+        list-style: none;
+        margin: 0;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 5px;
+        bottom: 5px;
+        width: 2px;
+        background-color: var(--footer-border);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 25px;
+        padding-left: 15px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -19px;
+        top: 6px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #cbd5e1;
+        border: 2px solid var(--card-bg);
+    }
+
+    .timeline-item.completed::before {
+        background-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+    
+    .timeline-item.active::before {
+        background-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .timeline-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+    
+    .timeline-date {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+    
+    .timeline-desc {
+        font-size: 0.8rem;
+        color: var(--text-color);
+        opacity: 0.8;
+    }
 </style>
 
 <div class="container py-3">
@@ -109,120 +177,220 @@
         </a>
     </div>
 
-    <!-- Ticket Detail Header Info Card -->
-    <div class="card chat-card mb-4">
-        <div class="chat-header p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div>
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge bg-primary rounded-pill">Talep #@Model.Id</span>
-                    @if (Model.Status == TicketSistemi.Models.TicketStatus.Acik)
-                    {
-                        <span class="badge rounded-pill badge-acik px-3 py-1.5">Açık</span>
-                    }
-                    else if (Model.Status == TicketSistemi.Models.TicketStatus.Cozuldu)
-                    {
-                        <span class="badge rounded-pill badge-cozuldu px-3 py-1.5">Çözüldü</span>
-                    }
-                    else
-                    {
-                        <span class="badge rounded-pill badge-kapandi px-3 py-1.5">Kapandı</span>
-                    }
+    <div class="row g-4">
+        <!-- Left Column: Chat Conversation -->
+        <div class="col-lg-8">
+            <!-- Ticket Detail Header Info Card -->
+            <div class="card chat-card mb-4">
+                <div class="chat-header p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-primary rounded-pill">Talep #@Model.Id</span>
+                            @if (Model.Status == TicketSistemi.Models.TicketStatus.Acik)
+                            {
+                                <span class="badge rounded-pill badge-acik px-3 py-1.5">Açık</span>
+                            }
+                            else if (Model.Status == TicketSistemi.Models.TicketStatus.Cozuldu)
+                            {
+                                <span class="badge rounded-pill badge-cozuldu px-3 py-1.5">Çözüldü</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill badge-kapandi px-3 py-1.5">Kapandı</span>
+                            }
+                        </div>
+                        <h3 class="fw-bold mb-1 mt-2">@Model.Title</h3>
+                        <p class="text-secondary mb-0 small">
+                            👤 Müşteri: <strong>@Model.CustomerName</strong> | 📅 Tarih: @Model.CreatedDate.ToString("dd MMMM yyyy HH:mm")
+                        </p>
+                    </div>
+                    
+                    <div class="text-md-end">
+                        <span class="text-secondary d-block small mb-1">Üstlenen Temsilci</span>
+                        @if (!string.IsNullOrEmpty(Model.AssignedAgent))
+                        {
+                            <span class="badge fw-semibold px-3 py-2 border rounded-pill" style="color: #4338ca; background-color: #e0e7ff; border: 1px solid #c7d2fe; font-size: 0.9rem;">
+                                👤 @Model.AssignedAgent
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Henüz Atanmadı</span>
+                        }
+                    </div>
                 </div>
-                <h3 class="fw-bold mb-1 mt-2">@Model.Title</h3>
-                <p class="text-secondary mb-0 small">
-                    👤 Müşteri: <strong>@Model.CustomerName</strong> | 📅 Tarih: @Model.CreatedDate.ToString("dd MMMM yyyy HH:mm")
-                </p>
+
+                <!-- Chat Conversation Body -->
+                <div class="card-body p-4">
+                    <div class="chat-body" id="chatBody" style="max-height: 480px; overflow-y: auto; padding-right: 8px;">
+                        @if (Model.Messages != null && Model.Messages.Any())
+                        {
+                            @foreach (var msg in Model.Messages)
+                            {
+                                var isMsgAdmin = string.Equals(msg.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+                                <div class="bubble @(isMsgAdmin ? "bubble-right" : "bubble-left") mb-3">
+                                    <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom border-light border-opacity-10">
+                                        <div class="avatar @(isMsgAdmin ? "avatar-agent" : "avatar-user")">
+                                            @((msg.Sender ?? "U").Substring(0, Math.Min(2, (msg.Sender ?? "U").Length)).ToUpper())
+                                        </div>
+                                        <span class="fw-bold small @(isMsgAdmin ? "text-white" : "text-slate-800")">
+                                            @msg.Sender @(isMsgAdmin ? "(Destek Temsilcisi)" : "(Müşteri)")
+                                        </span>
+                                    </div>
+                                    <div style="white-space: pre-wrap; word-break: break-word;">@msg.Message</div>
+                                    <div class="bubble-meta justify-content-end">
+                                        <span>🕒 @msg.SentDate.ToString("dd MMM HH:mm")</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="bubble bubble-left">
+                                <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom border-light border-opacity-10">
+                                    <div class="avatar avatar-user">@((Model.CustomerName ?? "U").Substring(0, Math.Min(2, (Model.CustomerName ?? "U").Length)).ToUpper())</div>
+                                    <span class="fw-bold text-slate-800 small">@(Model.CustomerName ?? "Müşteri") (Müşteri)</span>
+                                </div>
+                                <div style="white-space: pre-wrap;">@Model.Description</div>
+                                <div class="bubble-meta">
+                                    <span>🕒 @Model.CreatedDate.ToString("HH:mm")</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
-            
-            <div class="text-md-end">
-                <span class="text-secondary d-block small mb-1">Üstlenen Temsilci</span>
-                @if (!string.IsNullOrEmpty(Model.AssignedAgent))
-                {
-                    <span class="badge fw-semibold px-3 py-2 border rounded-pill" style="color: #4338ca; background-color: #e0e7ff; border: 1px solid #c7d2fe; font-size: 0.9rem;">
-                        👤 @Model.AssignedAgent
-                    </span>
-                }
-                else
-                {
-                    <span class="text-muted small">Henüz Atanmadı</span>
-                }
+
+            <!-- Reply Form -->
+            <div class="card chat-card">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">@(User.IsInRole("Admin") ? "Destek Talebini Yanıtla" : "Destek Ekibine Yazın")</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Details" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label fw-bold text-secondary">Mesajınız</label>
+                            <textarea name="message" id="message" rows="4" class="form-control form-control-custom" placeholder="Buraya yanıtınızı veya sormak istediğiniz şeyi yazın..." required></textarea>
+                        </div>
+
+                        <div class="row align-items-center g-3">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <div class="col-md-6 col-lg-5">
+                                    <label for="status" class="form-label fw-bold text-secondary">Bilet Durumu Güncelle</label>
+                                    <select name="status" id="status" class="form-select form-control-custom" style="cursor: pointer;">
+                                        <option value="1" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Acik)">Açık</option>
+                                        <option value="2" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Cozuldu)">Çözüldü</option>
+                                        <option value="3" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Kapandi)">Kapandı</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 col-lg-7 text-md-end pt-md-4">
+                                    <button type="submit" class="btn btn-custom btn-custom-primary shadow-sm">
+                                        📩 Yanıtı Gönder ve Güncelle
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="col-md-6 col-lg-5">
+                                    <label for="status" class="form-label fw-bold text-secondary">Bilet Durumu</label>
+                                    <select name="status" id="status" class="form-select form-control-custom" style="cursor: pointer;">
+                                        <option value="1" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Acik)">Açık (İşlem Bekliyor)</option>
+                                        <option value="3" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Kapandi)">Kapandı (Sorunum Çözüldü)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 col-lg-7 text-md-end pt-md-4">
+                                    <button type="submit" class="btn btn-custom btn-custom-primary shadow-sm">
+                                        📩 Mesajı Gönder
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- Chat Conversation Body -->
-        <div class="card-body p-4">
-            <div class="chat-body">
-                <!-- User Question Bubble (Always Left) -->
-                <div class="bubble bubble-left">
-                    <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom border-light border-opacity-10">
-                        <div class="avatar avatar-user">@((Model.CustomerName ?? "U").Substring(0, Math.Min(2, (Model.CustomerName ?? "U").Length)).ToUpper())</div>
-                        <span class="fw-bold text-slate-800 small">@(Model.CustomerName ?? "Müşteri") (Müşteri)</span>
-                    </div>
-                    <div style="white-space: pre-wrap;">@Model.Description</div>
-                    <div class="bubble-meta">
-                        <span>🕒 @Model.CreatedDate.ToString("HH:mm")</span>
-                    </div>
+        <!-- Right Column: Timeline & Meta Info -->
+        <div class="col-lg-4">
+            <div class="card chat-card mb-4">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">📌 Talep Geçmişi</h5>
                 </div>
+                <div class="card-body p-4">
+                    <ul class="timeline">
+                        <!-- Step 1: Talep Oluşturuldu -->
+                        <li class="timeline-item completed">
+                            <div class="timeline-title">Talep Oluşturuldu</div>
+                            <div class="timeline-date">📅 @Model.CreatedDate.ToString("dd MMM yyyy HH:mm")</div>
+                            <div class="timeline-desc">Sorun kaydı @Model.CustomerName tarafından sisteme iletildi.</div>
+                        </li>
 
-                <!-- Admin Response Bubble (Right) -->
-                @if (!string.IsNullOrEmpty(Model.SupportReply))
-                {
-                    <div class="bubble bubble-right">
-                        <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom border-light border-opacity-10">
-                            <div class="avatar avatar-agent">@((Model.AssignedAgent ?? "A").Substring(0, Math.Min(2, (Model.AssignedAgent ?? "A").Length)).ToUpper())</div>
-                            <span class="fw-bold small text-white">@Model.AssignedAgent (Destek Elemanı)</span>
-                        </div>
-                        <div style="white-space: pre-wrap;">@Model.SupportReply</div>
-                        <div class="bubble-meta">
-                            <span>✔ İletildi</span>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="text-center py-4 text-muted">
-                        <span class="fs-4 d-block mb-1">💬</span> Henüz bir yanıt verilmemiş.
-                    </div>
-                }
+                        <!-- Step 2: Temsilci Atandı -->
+                        @if (!string.IsNullOrEmpty(Model.AssignedAgent))
+                        {
+                            <li class="timeline-item completed">
+                                <div class="timeline-title">Temsilci Atandı</div>
+                                <div class="timeline-desc">Müşteri temsilcisi <strong>@Model.AssignedAgent</strong> bu talebi üstlendi.</div>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="timeline-item active">
+                                <div class="timeline-title">Atama Bekleniyor</div>
+                                <div class="timeline-desc">Bir destek elemanının biletinizi üstlenmesi bekleniyor.</div>
+                            </li>
+                        }
+
+                        <!-- Step 3: Destek Yanıtı -->
+                        @if (Model.Messages != null && Model.Messages.Any(m => string.Equals(m.Role, "Admin", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            <li class="timeline-item completed">
+                                <div class="timeline-title">Yanıt İletildi</div>
+                                <div class="timeline-desc">Destek temsilcisi çözüm detaylarını içeren bir yanıt bıraktı.</div>
+                            </li>
+                        }
+                        else if (!string.IsNullOrEmpty(Model.AssignedAgent))
+                        {
+                            <li class="timeline-item active">
+                                <div class="timeline-title">İnceleme Aşamasında</div>
+                                <div class="timeline-desc">Temsilci şu anda biletinizi inceliyor.</div>
+                            </li>
+                        }
+
+                        <!-- Step 4: Son Durum -->
+                        @if (Model.Status == TicketSistemi.Models.TicketStatus.Cozuldu)
+                        {
+                            <li class="timeline-item completed">
+                                <div class="timeline-title text-success">✅ Çözüldü</div>
+                                <div class="timeline-desc">Bu destek talebi başarıyla çözüldü olarak işaretlendi.</div>
+                            </li>
+                        }
+                        else if (Model.Status == TicketSistemi.Models.TicketStatus.Kapandi)
+                        {
+                            <li class="timeline-item completed">
+                                <div class="timeline-title text-secondary">🔒 Kapandı</div>
+                                <div class="timeline-desc">Talep arşive alındı ve kapatıldı.</div>
+                            </li>
+                        }
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Admin Reply Form -->
-    @if (User.IsInRole("Admin"))
-    {
-        <div class="card chat-card">
-            <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h5 class="fw-bold mb-0">Destek Talebini Yanıtla</h5>
-            </div>
-            <div class="card-body p-4">
-                <form asp-action="Details" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    
-                    <div class="mb-3">
-                        <label for="supportReply" class="form-label fw-bold text-secondary">Yanıtınız</label>
-                        <textarea name="supportReply" id="supportReply" rows="5" class="form-control form-control-custom" placeholder="Sorunun çözümünü veya detaylı cevabınızı yazın..." required>@Model.SupportReply</textarea>
-                    </div>
-
-                    <div class="row align-items-center g-3">
-                        <div class="col-md-6 col-lg-4">
-                            <label for="status" class="form-label fw-bold text-secondary">Bilet Durumu Güncelle</label>
-                            <select name="status" id="status" class="form-select form-control-custom" style="cursor: pointer;">
-                                <option value="1" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Acik)">Açık</option>
-                                <option value="2" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Cozuldu)">Çözüldü</option>
-                                <option value="3" selected="@(Model.Status == TicketSistemi.Models.TicketStatus.Kapandi)">Kapandı</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-6 col-lg-8 text-md-end pt-md-4">
-                            <button type="submit" class="btn btn-custom btn-custom-primary shadow-sm">
-                                📩 Yanıtı Kaydet ve Bildir
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    }
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Auto scroll chat body to the bottom
+            const chatBody = document.getElementById("chatBody");
+            if (chatBody) {
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        });
+    </script>
+}

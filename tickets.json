@@ -88,5 +88,15 @@
     "Status": 2,
     "SupportReply": "\u00C7ay ve TFT",
     "AssignedAgent": "admin"
+  },
+  {
+    "Id": 10,
+    "Title": "Memnuyietsiz Adal",
+    "Description": "Adal art\u0131k memnun ol",
+    "CustomerName": "batu",
+    "CreatedDate": "2026-05-21T20:22:03.1924736+03:00",
+    "Status": 1,
+    "SupportReply": null,
+    "AssignedAgent": null
   }
 ]
