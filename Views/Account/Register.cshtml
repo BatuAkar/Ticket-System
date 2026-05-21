@@ -1,6 +1,6 @@
 @{
     Layout = null;
-    ViewData["Title"] = "Sistem Girişi";
+    ViewData["Title"] = "Yeni Üye Kaydı";
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -28,7 +28,7 @@
 
         .login-header {
             background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-            padding: 45px 20px;
+            padding: 40px 20px;
             color: white;
             text-align: center;
             border-bottom: 2px solid #334155;
@@ -80,13 +80,16 @@
             color: white;
         }
 
-        .info-box {
-            background: #f8fafc;
-            border-left: 4px solid #6366f1;
-            border-radius: 10px;
-            border-top: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
+        .link-text {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .link-text:hover {
+            color: #4f46e5;
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -97,20 +100,13 @@
                 <div class="card login-card">
                     <div class="login-header">
                         <div class="login-icon-wrapper">
-                            🔐
+                            📝
                         </div>
-                        <h4 class="fw-bold mb-1">Destek Portalı</h4>
-                        <p class="text-white-50 small mb-0">Erişim sağlamak için bilgilerinizi girin</p>
+                        <h4 class="fw-bold mb-1">Yeni Hesap Oluştur</h4>
+                        <p class="text-white-50 small mb-0">Destek talebi açabilmek için üye olun</p>
                     </div>
 
                     <div class="card-body p-4 p-md-5">
-                        @if (TempData["SuccessMessage"] != null)
-                        {
-                            <div class="alert alert-success border-0 small shadow-sm mb-4" style="border-radius: 10px;">
-                                <i class="me-2">✅</i> @TempData["SuccessMessage"]
-                            </div>
-                        }
-
                         @if (ViewBag.ErrorMessage != null)
                         {
                             <div class="alert alert-danger border-0 small shadow-sm mb-4" style="border-radius: 10px;">
@@ -118,38 +114,30 @@
                             </div>
                         }
 
-                        <form asp-action="Login" method="post">
+                        <form asp-action="Register" method="post">
                             <div class="mb-3">
                                 <label class="form-label text-secondary small fw-bold">KULLANICI ADI</label>
                                 <input type="text" name="username" class="form-control form-control-custom" required placeholder="Kullanıcı adınız" autocomplete="off" />
                             </div>
                             
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label class="form-label text-secondary small fw-bold">ŞİFRE</label>
                                 <input type="password" name="password" class="form-control form-control-custom" required placeholder="••••••" />
                             </div>
 
+                            <div class="mb-4">
+                                <label class="form-label text-secondary small fw-bold">ŞİFRE TEKRAR</label>
+                                <input type="password" name="confirmPassword" class="form-control form-control-custom" required placeholder="••••••" />
+                            </div>
+
                             <button type="submit" class="btn btn-login w-100 shadow-sm d-flex align-items-center justify-content-center gap-2 mb-3">
-                                Giriş Yap <span>→</span>
+                                Kaydol <span>→</span>
                             </button>
                         </form>
 
                         <div class="text-center mt-3">
-                            <span class="text-muted small">Henüz üye değil misiniz?</span>
-                            <a asp-action="Register" style="color: #6366f1; text-decoration: none; font-weight: 600;" class="small ms-1">Hemen Kaydolun</a>
-                        </div>
-
-                        <div class="info-box p-3 mt-4">
-                            <div class="d-flex align-items-center mb-1">
-                                <span class="me-2">💡</span>
-                                <span class="small fw-bold text-dark">Demo Hesap Bilgileri:</span>
-                            </div>
-                            <div class="ps-4">
-                                <p class="mb-0 x-small text-muted" style="font-size: 0.75rem; line-height: 1.5;">
-                                    <strong>Yönetici (Admin):</strong> admin / 123 <br>
-                                    <strong>Müşteri (User):</strong> user / 123
-                                </p>
-                            </div>
+                            <span class="text-muted small">Zaten hesabınız var mı?</span>
+                            <a asp-action="Login" class="link-text small ms-1">Giriş Yap</a>
                         </div>
                     </div>
                 </div>

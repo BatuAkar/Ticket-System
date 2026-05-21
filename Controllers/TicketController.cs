@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketSistemi.Models;
 using TicketSistemi.Data;
@@ -5,23 +6,23 @@ using System.Linq;
 
 namespace TicketSistemi.Controllers
 {
+    [Authorize]
     public class TicketController : Controller
     {
         // 1. Tüm Ticket'ları Listeleme Ekranı
         public IActionResult Index(TicketStatus? status)
         {
-            var userRole = Request.Cookies["UserRole"];
-            var username = Request.Cookies["Username"];
-
-            if (string.IsNullOrEmpty(userRole) || string.IsNullOrEmpty(username))
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
             {
                 return RedirectToAction("Login", "Account");
             }
 
+            var isAdmin = User.IsInRole("Admin");
             var tickets = JsonDbManager.GetTickets();
 
             // Eğer normal kullanıcı ise sadece kendi biletlerini süzüyoruz
-            if (userRole == "User")
+            if (!isAdmin)
             {
                 tickets = tickets.Where(t => t.CustomerName == username).ToList();
             }
@@ -50,21 +51,16 @@ namespace TicketSistemi.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            var userRole = Request.Cookies["UserRole"];
-            if (string.IsNullOrEmpty(userRole))
-            {
-                return RedirectToAction("Login", "Account");
-            }
             return View();
         }
 
         // 3. Form Doldurulup Gönderildiğinde Çalışacak Kısım (POST)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Ticket newTicket)
         {
-            var userRole = Request.Cookies["UserRole"];
-            var username = Request.Cookies["Username"];
-            if (string.IsNullOrEmpty(userRole) || string.IsNullOrEmpty(username))
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
             {
                 return RedirectToAction("Login", "Account");
             }
@@ -90,12 +86,9 @@ namespace TicketSistemi.Controllers
 
         // 4. Admin Cevaplama Ekranı (GET)
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Reply(int id)
         {
-            if (Request.Cookies["UserRole"] != "Admin")
-{
-    return RedirectToAction("Login", "Account");
-}
             var tickets = JsonDbManager.GetTickets();
             var ticket = tickets.FirstOrDefault(t => t.Id == id);
             
@@ -106,12 +99,10 @@ namespace TicketSistemi.Controllers
 
         // 5. Admin Cevabı Kaydettiğinde (POST)
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public IActionResult Reply(int id, string supportReply, TicketStatus status)
         {
-            if (Request.Cookies["UserRole"] != "Admin")
-            {
-                return RedirectToAction("Login", "Account");
-            }
             var tickets = JsonDbManager.GetTickets();
             var ticketIndex = tickets.FindIndex(t => t.Id == id);
             
@@ -123,7 +114,7 @@ namespace TicketSistemi.Controllers
             // Eğer daha önce üstlenilmemişse, otomatik olarak cevaplayan admini ata
             if (string.IsNullOrEmpty(tickets[ticketIndex].AssignedAgent))
             {
-                tickets[ticketIndex].AssignedAgent = Request.Cookies["Username"] ?? "Destek Elemanı";
+                tickets[ticketIndex].AssignedAgent = User.Identity?.Name ?? "Destek Elemanı";
             }
             
             JsonDbManager.SaveTickets(tickets);
@@ -133,18 +124,16 @@ namespace TicketSistemi.Controllers
 
         // 6. Talebi Üstlenme (POST)
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public IActionResult Claim(int id)
         {
-            if (Request.Cookies["UserRole"] != "Admin")
-            {
-                return RedirectToAction("Login", "Account");
-            }
             var tickets = JsonDbManager.GetTickets();
             var ticketIndex = tickets.FindIndex(t => t.Id == id);
             
             if (ticketIndex == -1) return NotFound();
             
-            tickets[ticketIndex].AssignedAgent = Request.Cookies["Username"] ?? "Destek Elemanı";
+            tickets[ticketIndex].AssignedAgent = User.Identity?.Name ?? "Destek Elemanı";
             JsonDbManager.SaveTickets(tickets);
             
             return RedirectToAction("Index");
@@ -152,12 +141,10 @@ namespace TicketSistemi.Controllers
 
         // 7. Talebi Silme (POST)
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
-            if (Request.Cookies["UserRole"] != "Admin")
-            {
-                return RedirectToAction("Login", "Account");
-            }
             var tickets = JsonDbManager.GetTickets();
             var ticket = tickets.FirstOrDefault(t => t.Id == id);
             

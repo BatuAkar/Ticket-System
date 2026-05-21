@@ -135,14 +135,14 @@
                     <tr>
                         <th class="ps-4 py-3">TALEP ID</th>
                         <th class="py-3">KONU BAŞLIĞI</th>
-                        @if (Context.Request.Cookies["UserRole"] == "Admin")
+                        @if (User.IsInRole("Admin"))
                         {
                             <th class="py-3">MÜŞTERİ</th>
                         }
                         <th class="py-3">OLUŞTURMA TARİHİ</th>
                         <th class="py-3">ÜSTLENEN</th>
                         <th class="py-3">DURUM</th>
-                        @if (Context.Request.Cookies["UserRole"] == "Admin")
+                        @if (User.IsInRole("Admin"))
                         {
                             <th class="py-3 text-end pe-4">İŞLEM</th>
                         }
@@ -152,7 +152,7 @@
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="@(Context.Request.Cookies["UserRole"] == "Admin" ? 7 : 5)" class="text-center py-5 text-muted">
+                            <td colspan="@(User.IsInRole("Admin") ? 7 : 5)" class="text-center py-5 text-muted">
                                 <span class="fs-2 d-block mb-3">🎈</span> Destek talebi bulunmuyor.
                             </td>
                         </tr>
@@ -167,7 +167,7 @@
                                     <span class="fw-bold text-slate-800 d-block">@item.Title</span>
                                     <small class="text-muted d-inline-block text-truncate" style="max-width: 320px;">@item.Description</small>
                                 </td>
-                                @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                @if (User.IsInRole("Admin"))
                                 {
                                     <td class="fw-semibold text-secondary">@item.CustomerName</td>
                                 }
@@ -198,7 +198,7 @@
                                         <span class="badge rounded-pill badge-kapandi px-3 py-2">Kapandı</span>
                                     }
                                 </td>
-                                @if (Context.Request.Cookies["UserRole"] == "Admin")
+                                @if (User.IsInRole("Admin"))
                                 {
                                     <td class="text-end pe-4">
                                         <div class="d-inline-flex gap-1">

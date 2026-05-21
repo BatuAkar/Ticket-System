@@ -133,8 +133,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    
-                    @if (Context.Request.Cookies["UserRole"] != null)
+                    @if (User.Identity?.IsAuthenticated == true)
                     {
                         <ul class="navbar-nav flex-grow-1">
                             <li class="nav-item">
@@ -148,11 +147,11 @@
                     }
 
                     <ul class="navbar-nav align-items-center">
-                        @if (Context.Request.Cookies["UserRole"] != null)
+                        @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item dropdown">
                                 <a class="btn btn-outline-light dropdown-toggle px-3 py-1.5 rounded-pill fw-semibold d-flex align-items-center gap-2 text-decoration-none" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    👤 @Context.Request.Cookies["Username"]
+                                    👤 @User.Identity.Name
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-2" aria-labelledby="profileDropdown" style="border-radius: 12px; min-width: 200px;">
                                     <li>
@@ -160,7 +159,7 @@
                                     </li>
                                     <li>
                                         <span class="dropdown-item-text text-dark fw-semibold d-flex align-items-center gap-2 small">
-                                            🛡️ Rol: <span class="badge bg-warning text-dark rounded-pill fw-bold">@Context.Request.Cookies["UserRole"]</span>
+                                            🛡️ Rol: <span class="badge bg-warning text-dark rounded-pill fw-bold">@(User.IsInRole("Admin") ? "Admin" : "User")</span>
                                         </span>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>

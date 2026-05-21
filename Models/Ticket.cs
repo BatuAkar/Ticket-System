@@ -8,13 +8,13 @@ namespace TicketSistemi.Models
         
         [Required(ErrorMessage = "Lütfen bir başlık giriniz.")]
         [StringLength(100, ErrorMessage = "Başlık 100 karakterden uzun olamaz.")]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "Sorununuzu detaylıca açıklamanız gerekmektedir.")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "Adınızı girmeniz zorunludur.")]
-        public string CustomerName { get; set; } 
+        public string CustomerName { get; set; } = string.Empty; 
         
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public TicketStatus Status { get; set; } = TicketStatus.Acik;

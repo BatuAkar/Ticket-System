@@ -2,7 +2,7 @@
   {
     "Id": 1,
     "Title": "Pasaj",
-    "Description": "Alb\u00fcm ne zaman cikiyosss",
+    "Description": "Alb\u00FCm ne zaman cikiyosss",
     "CustomerName": "Tolga can",
     "CreatedDate": "2026-05-18T16:23:29.5693625+03:00",
     "Status": 2,
@@ -32,7 +32,7 @@
   {
     "Id": 4,
     "Title": "boktan proje",
-    "Description": "bu proje bok gibi olmu\u015f",
+    "Description": "bu proje bok gibi olmu\u015F",
     "CustomerName": "ceg",
     "CreatedDate": "2026-05-18T22:28:55.865037+03:00",
     "Status": 1,
@@ -42,7 +42,7 @@
   {
     "Id": 5,
     "Title": "proje eleman\u0131",
-    "Description": "bunlar\u0131n yapaca\u011f\u0131 proje anca bu kadar olur ",
+    "Description": "bunlar\u0131n yapaca\u011F\u0131 proje anca bu kadar olur ",
     "CustomerName": "user",
     "CreatedDate": "2026-05-19T18:01:09.802894+03:00",
     "Status": 2,
@@ -51,8 +51,8 @@
   },
   {
     "Id": 6,
-    "Title": "eh i\u015fte ",
-    "Description": "\u00e7\u00f6z\u00fcn art\u0131k",
+    "Title": "eh i\u015Fte ",
+    "Description": "\u00E7\u00F6z\u00FCn art\u0131k",
     "CustomerName": "user",
     "CreatedDate": "2026-05-19T18:01:38.060558+03:00",
     "Status": 1,
@@ -77,6 +77,16 @@
     "CreatedDate": "2026-05-19T18:12:04.594305+03:00",
     "Status": 1,
     "SupportReply": null,
+    "AssignedAgent": "admin"
+  },
+  {
+    "Id": 9,
+    "Title": "Yeni \u00DCye denemesi",
+    "Description": "akanzi",
+    "CustomerName": "batu",
+    "CreatedDate": "2026-05-21T20:12:51.70565+03:00",
+    "Status": 2,
+    "SupportReply": "\u00C7ay ve TFT",
     "AssignedAgent": "admin"
   }
 ]
