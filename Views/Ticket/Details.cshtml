@@ -178,6 +178,18 @@
     </div>
 
     <div class="row g-4">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="col-12">
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <span class="fs-4 me-2">⚠️</span>
+                        <div><strong>Hata!</strong> @TempData["ErrorMessage"]</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
         <!-- Left Column: Chat Conversation -->
         <div class="col-lg-8">
             <!-- Ticket Detail Header Info Card -->

@@ -35,6 +35,20 @@ namespace TicketSistemi.Controllers
                 return (null, null);
             }
 
+            // 10MB limit (10 * 1024 * 1024 bytes)
+            const long maxFileSize = 10485760;
+            if (file.Length > maxFileSize)
+            {
+                throw new ArgumentException("Yüklenen dosya boyutu 10MB'tan büyük olamaz.");
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".txt", ".zip", ".rar", ".docx", ".xlsx" };
+            if (!allowedExtensions.Contains(extension))
+            {
+                throw new ArgumentException("İzin verilmeyen dosya formatı. Desteklenen formatlar: PDF, JPG, JPEG, PNG, GIF, WEBP, TXT, ZIP, RAR, DOCX, XLSX");
+            }
+
             var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
             if (!Directory.Exists(uploadsFolder))
             {
@@ -109,7 +123,19 @@ namespace TicketSistemi.Controllers
 
             if (ModelState.IsValid)
             {
-                var (attachmentPath, attachmentFileName) = await SaveAttachmentAsync(attachment);
+                string? attachmentPath = null;
+                string? attachmentFileName = null;
+
+                try
+                {
+                    (attachmentPath, attachmentFileName) = await SaveAttachmentAsync(attachment);
+                }
+                catch (ArgumentException ex)
+                {
+                    ModelState.AddModelError("attachment", ex.Message);
+                    return View(newTicket);
+                }
+
                 newTicket.AttachmentPath = attachmentPath;
                 newTicket.AttachmentFileName = attachmentFileName;
 
@@ -308,7 +334,18 @@ namespace TicketSistemi.Controllers
             // Mesaj içeriği veya attachment varsa yeni mesaj ekle
             if (!string.IsNullOrWhiteSpace(message) || (attachment != null && attachment.Length > 0))
             {
-                var (attachmentPath, attachmentFileName) = await SaveAttachmentAsync(attachment);
+                string? attachmentPath = null;
+                string? attachmentFileName = null;
+
+                try
+                {
+                    (attachmentPath, attachmentFileName) = await SaveAttachmentAsync(attachment);
+                }
+                catch (ArgumentException ex)
+                {
+                    TempData["ErrorMessage"] = ex.Message;
+                    return RedirectToAction("Details", new { id = id });
+                }
 
                 var newMessage = new TicketMessage
                 {
