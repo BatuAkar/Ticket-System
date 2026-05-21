@@ -6,6 +6,7 @@
     var toplamTicket = ViewBag.TotalCount;
     var acikTicket = ViewBag.OpenCount;
     var cozulunTicket = ViewBag.SolvedCount;
+    var kapandiTicket = ViewBag.ClosedCount;
 }
 
 <style>
@@ -19,6 +20,9 @@
     .bg-gradient-emerald { 
         background: linear-gradient(135deg, #10b981, #059669) !important; 
     }
+    .bg-gradient-slate { 
+        background: linear-gradient(135deg, #64748b, #475569) !important; 
+    }
     
     .stat-card-custom {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -31,28 +35,31 @@
     }
 
     .table-container {
-        background: #ffffff;
+        background: var(--card-bg);
         border-radius: 16px;
+        border: var(--card-border);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         overflow: hidden;
     }
 
     .custom-table th {
-        background-color: #f8fafc !important;
-        color: #475569;
+        background-color: var(--bg-color) !important;
+        color: var(--text-color);
         font-weight: 700;
         text-transform: uppercase;
         font-size: 0.8rem;
         letter-spacing: 0.5px;
-        border-bottom: 2px solid #e2e8f0;
+        border-bottom: 2px solid var(--footer-border);
     }
 
     .custom-table tr {
         transition: background-color 0.2s ease;
+        background-color: var(--card-bg);
+        color: var(--text-color);
     }
 
     .custom-table tr:hover {
-        background-color: #f8fafc !important;
+        background-color: var(--bg-color) !important;
     }
 </style>
 
@@ -60,7 +67,7 @@
     <!-- Header Section -->
     <div class="row align-items-center mb-4 pb-3 border-bottom g-3">
         <div class="col-md-8">
-            <h2 class="fw-bold text-slate-800 mb-1">Destek Talepleri Yönetim Paneli</h2>
+            <h2 class="fw-bold mb-1">Destek Talepleri Yönetim Paneli</h2>
             <p class="text-secondary mb-0">Sistem veritabanındaki anlık bilet durumları ve canlı analizler.</p>
         </div>
         <div class="col-md-4 text-md-end">
@@ -70,63 +77,98 @@
         </div>
     </div>
 
-    <!-- Analytics Stats -->
+    <!-- Analytics Stats & Chart Section -->
     <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <a href="?status=" class="text-decoration-none">
-                <div class="card stat-card-custom shadow-sm bg-gradient-indigo text-white">
-                    <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Toplam Talep</h6>
-                            <h2 class="display-6 fw-bold mb-0">@toplamTicket</h2>
+        <!-- Cards Grid (Left side) -->
+        <div class="col-lg-8">
+            <div class="row g-4">
+                <div class="col-sm-6">
+                    <a href="?status=" class="text-decoration-none">
+                        <div class="card stat-card-custom shadow-sm bg-gradient-indigo text-white">
+                            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Toplam Talep</h6>
+                                    <h2 class="display-6 fw-bold mb-0">@toplamTicket</h2>
+                                </div>
+                                <div class="fs-1 opacity-50">📊</div>
+                            </div>
                         </div>
-                        <div class="fs-1 opacity-50">📊</div>
-                    </div>
+                    </a>
                 </div>
-            </a>
+                <div class="col-sm-6">
+                    <a href="?status=1" class="text-decoration-none">
+                        <div class="card stat-card-custom shadow-sm bg-gradient-amber text-white">
+                            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Bekleyen (Açık)</h6>
+                                    <h2 class="display-6 fw-bold mb-0">@acikTicket</h2>
+                                </div>
+                                <div class="fs-1 opacity-50">⏳</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="?status=2" class="text-decoration-none">
+                        <div class="card stat-card-custom shadow-sm bg-gradient-emerald text-white">
+                            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Çözülen Talepler</h6>
+                                    <h2 class="display-6 fw-bold mb-0">@cozulunTicket</h2>
+                                </div>
+                                <div class="fs-1 opacity-50">✅</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="?status=3" class="text-decoration-none">
+                        <div class="card stat-card-custom shadow-sm bg-gradient-slate text-white">
+                            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Kapatılan Talepler</h6>
+                                    <h2 class="display-6 fw-bold mb-0">@kapandiTicket</h2>
+                                </div>
+                                <div class="fs-1 opacity-50">🔒</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="col-md-4">
-            <a href="?status=1" class="text-decoration-none">
-                <div class="card stat-card-custom shadow-sm bg-gradient-amber text-white">
-                    <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Bekleyen (Açık)</h6>
-                            <h2 class="display-6 fw-bold mb-0">@acikTicket</h2>
-                        </div>
-                        <div class="fs-1 opacity-50">⏳</div>
+
+        <!-- Donut Chart Card (Right side) -->
+        <div class="col-lg-4">
+            <div class="card card-custom shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center text-center">
+                    <h6 class="text-uppercase fw-bold small mb-3 text-secondary w-100">Talep Durum Dağılımı</h6>
+                    <div style="position: relative; height: 180px; width: 100%;">
+                        <canvas id="ticketStatusChart"></canvas>
                     </div>
                 </div>
-            </a>
-        </div>
-        <div class="col-md-4">
-            <a href="?status=2" class="text-decoration-none">
-                <div class="card stat-card-custom shadow-sm bg-gradient-emerald text-white">
-                    <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 text-uppercase fw-bold small mb-1">Çözülen Talepler</h6>
-                            <h2 class="display-6 fw-bold mb-0">@cozulunTicket</h2>
-                        </div>
-                        <div class="fs-1 opacity-50">✅</div>
-                    </div>
-                </div>
-            </a>
+            </div>
         </div>
     </div>
 
     <!-- Tickets List Table -->
-    <div class="table-container border-0 mb-4">
-        <div class="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-slate-800 d-flex align-items-center">
+    <div class="table-container mb-4">
+        <div class="card-header bg-transparent border-0 py-4 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <h5 class="mb-0 fw-bold d-flex align-items-center">
                 <span class="me-2">📋</span> Bilet Listesi
             </h5>
-            <form method="get" class="d-inline-flex m-0">
-                <select name="status" class="form-select form-select-sm fw-semibold text-secondary" style="min-width: 140px; border-radius: 8px; cursor: pointer;" onchange="this.form.submit()">
-                    <option value="">Tümü</option>
-                    <option value="1" selected="@(ViewBag.CurrentStatus == TicketSistemi.Models.TicketStatus.Acik)">Açık</option>
-                    <option value="2" selected="@(ViewBag.CurrentStatus == TicketSistemi.Models.TicketStatus.Cozuldu)">Çözüldü</option>
-                    <option value="3" selected="@(ViewBag.CurrentStatus == TicketSistemi.Models.TicketStatus.Kapandi)">Kapandı</option>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <!-- Search Input -->
+                <div class="position-relative">
+                    <input type="text" id="instantSearch" class="form-control form-control-custom" placeholder="🔍 Taleplerde ara..." style="min-width: 240px; border-radius: 10px;" />
+                </div>
+                <!-- Status Filter Dropdown -->
+                <select id="statusFilter" class="form-select form-control-custom" style="min-width: 140px; border-radius: 10px; cursor: pointer;">
+                    <option value="">Tümü (Durum)</option>
+                    <option value="AÇIK">Açık</option>
+                    <option value="ÇÖZÜLDÜ">Çözüldü</option>
+                    <option value="KAPANDI">Kapandı</option>
                 </select>
-            </form>
+            </div>
         </div>
         
         <div class="table-responsive">
@@ -142,17 +184,14 @@
                         <th class="py-3">OLUŞTURMA TARİHİ</th>
                         <th class="py-3">ÜSTLENEN</th>
                         <th class="py-3">DURUM</th>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <th class="py-3 text-end pe-4">İŞLEM</th>
-                        }
+                        <th class="py-3 text-end pe-4">İŞLEM</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="@(User.IsInRole("Admin") ? 7 : 5)" class="text-center py-5 text-muted">
+                            <td colspan="@(User.IsInRole("Admin") ? 7 : 6)" class="text-center py-5 text-muted">
                                 <span class="fs-2 d-block mb-3">🎈</span> Destek talebi bulunmuyor.
                             </td>
                         </tr>
@@ -164,7 +203,7 @@
                             <tr>
                                 <td class="ps-4 fw-bold" style="color: #4f46e5;">#@item.Id</td>
                                 <td>
-                                    <span class="fw-bold text-slate-800 d-block">@item.Title</span>
+                                    <span class="fw-bold d-block">@item.Title</span>
                                     <small class="text-muted d-inline-block text-truncate" style="max-width: 320px;">@item.Description</small>
                                 </td>
                                 @if (User.IsInRole("Admin"))
@@ -198,10 +237,10 @@
                                         <span class="badge rounded-pill badge-kapandi px-3 py-2">Kapandı</span>
                                     }
                                 </td>
-                                @if (User.IsInRole("Admin"))
-                                {
-                                    <td class="text-end pe-4">
-                                        <div class="d-inline-flex gap-1">
+                                <td class="text-end pe-4">
+                                    <div class="d-inline-flex gap-1">
+                                        @if (User.IsInRole("Admin"))
+                                        {
                                             @if (string.IsNullOrEmpty(item.AssignedAgent))
                                             {
                                                 <form asp-action="Claim" asp-route-id="@item.Id" method="post" class="m-0">
@@ -218,9 +257,15 @@
                                                     🗑️ Sil
                                                 </button>
                                             </form>
-                                        </div>
-                                    </td>
-                                }
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white px-3 fw-bold rounded-pill shadow-sm">
+                                                🔍 Detay
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
                             </tr>
                         }
                     }
@@ -229,3 +274,133 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Chart.js Donut Chart
+            const ctx = document.getElementById('ticketStatusChart').getContext('2d');
+            const openCount = @acikTicket;
+            const solvedCount = @cozulunTicket;
+            const closedCount = @kapandiTicket;
+
+            // Total is 0 safety check
+            const total = openCount + solvedCount + closedCount;
+
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Açık', 'Çözüldü', 'Kapandı'],
+                    datasets: [{
+                        data: total === 0 ? [1, 0, 0] : [openCount, solvedCount, closedCount],
+                        backgroundColor: total === 0 ? ['#e2e8f0'] : [
+                            '#f59e0b', // Amber
+                            '#10b981', // Emerald
+                            '#64748b'  // Slate
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#f8fafc' : '#475569',
+                                font: {
+                                    family: 'Outfit',
+                                    size: 11
+                                },
+                                padding: 15,
+                                boxWidth: 12
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // Re-render chart text color on theme change
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === "data-bs-theme") {
+                        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                        chart.options.plugins.legend.labels.color = isDark ? '#f8fafc' : '#475569';
+                        chart.update();
+                    }
+                });
+            });
+            observer.observe(document.documentElement, { attributes: true });
+
+            // Instant Search & Client-side Filtering
+            const searchInput = document.getElementById("instantSearch");
+            const statusSelect = document.getElementById("statusFilter");
+            const tableRows = document.querySelectorAll(".custom-table tbody tr");
+
+            function filterTable() {
+                const searchText = searchInput.value.toLowerCase().trim();
+                const selectedStatus = statusSelect.value;
+
+                tableRows.forEach(row => {
+                    // Check if it's the "No tickets" empty row
+                    if (row.querySelector("td[colspan]")) {
+                        return;
+                    }
+
+                    // Extract text content
+                    const idText = row.querySelector("td:first-child").textContent.toLowerCase();
+                    const titleAndDescText = row.querySelector("td:nth-child(2)").textContent.toLowerCase();
+                    
+                    let customerText = "";
+                    const customerTd = row.querySelector("td.fw-semibold.text-secondary") || row.querySelector("td:nth-child(3)");
+                    if (customerTd && @(User.IsInRole("Admin") ? "true" : "false")) {
+                        customerText = customerTd.textContent.toLowerCase();
+                    }
+
+                    // Locate status text
+                    let statusText = "";
+                    // Status badge is on column 6 (0-indexed 5) for Admin, column 5 (0-indexed 4) for User
+                    const statusBadge = row.querySelector("td .badge");
+                    if (statusBadge) {
+                        statusText = statusBadge.textContent.trim().toUpperCase(); // "AÇIK", "ÇÖZÜLDÜ", "KAPANDI"
+                    }
+
+                    const matchesSearch = idText.includes(searchText) || 
+                                          titleAndDescText.includes(searchText) || 
+                                          customerText.includes(searchText);
+
+                    let matchesStatus = true;
+                    if (selectedStatus) {
+                        matchesStatus = statusText === selectedStatus;
+                    }
+
+                    if (matchesSearch && matchesStatus) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+            }
+
+            if (searchInput) searchInput.addEventListener("input", filterTable);
+            if (statusSelect) statusSelect.addEventListener("change", filterTable);
+
+            // If page loaded with a status filter from backend, set the select option and apply filter
+            const urlParams = new URLSearchParams(window.location.search);
+            const statusParam = urlParams.get('status');
+            if (statusParam === '1') {
+                statusSelect.value = 'AÇIK';
+            } else if (statusParam === '2') {
+                statusSelect.value = 'ÇÖZÜLDÜ';
+            } else if (statusParam === '3') {
+                statusSelect.value = 'KAPANDI';
+            }
+            filterTable();
+        });
+    </script>
+}

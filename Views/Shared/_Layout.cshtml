@@ -4,13 +4,46 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TicketSistemi</title>
+    <script>
+        (function () {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --card-bg: #ffffff;
+            --card-border: none;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --input-color: #0f172a;
+            --footer-bg: #ffffff;
+            --footer-border: #e2e8f0;
+            --text-muted: #64748b;
+        }
+
+        [data-bs-theme="dark"] {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --card-bg: #1e293b;
+            --card-border: 1px solid #334155;
+            --input-bg: #1e293b;
+            --input-border: #475569;
+            --input-color: #ffffff;
+            --footer-bg: #0f172a;
+            --footer-border: #334155;
+            --text-muted: #94a3b8;
+        }
+
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Modern Navbar */
@@ -46,8 +79,8 @@
 
         /* Modern Card system */
         .card-custom {
-            background: #ffffff;
-            border: none;
+            background: var(--card-bg);
+            border: var(--card-border);
             border-radius: 16px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -62,8 +95,9 @@
         .form-control-custom {
             border-radius: 10px;
             padding: 11px 15px;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--input-color);
             transition: all 0.2s ease;
         }
 
@@ -113,11 +147,20 @@
         }
 
         footer {
-            background: #ffffff;
-            border-top: 1px solid #e2e8f0;
-            color: #64748b;
+            background: var(--footer-bg);
+            border-top: 1px solid var(--footer-border);
+            color: var(--text-muted);
             padding: 24px 0;
             font-size: 0.9rem;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .bg-gradient-indigo { 
+            background: linear-gradient(135deg, #6366f1, #4338ca) !important; 
+        }
+        
+        .bg-gradient-amber { 
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important; 
         }
     </style>
 </head>
@@ -147,6 +190,11 @@
                     }
 
                     <ul class="navbar-nav align-items-center">
+                        <li class="nav-item me-3">
+                            <button class="btn btn-outline-light px-0 py-0 rounded-circle d-flex align-items-center justify-content-center" id="themeToggleBtn" type="button" style="width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.3); transition: all 0.2s;">
+                                <span id="themeToggleIcon" style="font-size: 1.15rem;">🌙</span>
+                            </button>
+                        </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item dropdown">
@@ -190,7 +238,109 @@
         </div>
     </footer>
 
+    <!-- Live Toast Notification Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+        <div id="liveToast" class="toast align-items-center text-white bg-gradient-indigo border-0" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 12px; display: none; opacity: 0; transition: opacity 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            <div class="d-flex">
+                <div class="toast-body p-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="font-size: 1.25rem;">🔔</span>
+                        <div>
+                            <strong class="d-block" id="toastTitle">Sistem Bildirimi</strong>
+                            <span id="toastMessage" class="small">Bir güncelleme var.</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Kapat" onclick="window.hideToast()"></button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeToggleIcon = document.getElementById('themeToggleIcon');
+
+            function updateToggleIcon(theme) {
+                themeToggleIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            }
+
+            // Initialize icon state
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            updateToggleIcon(currentTheme);
+
+            themeToggleBtn.addEventListener('click', () => {
+                const current = document.documentElement.getAttribute('data-bs-theme');
+                const target = current === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-bs-theme', target);
+                localStorage.setItem('theme', target);
+                updateToggleIcon(target);
+            });
+
+            // SignalR Toast Notifications
+            const toastEl = document.getElementById('liveToast');
+            const messageEl = document.getElementById('toastMessage');
+            let toastTimeout;
+
+            window.hideToast = function() {
+                if (toastEl) {
+                    toastEl.style.opacity = "0";
+                    setTimeout(() => {
+                        toastEl.style.display = "none";
+                    }, 300);
+                }
+            }
+
+            window.showToast = function(message, targetRole) {
+                const userRole = '@(User.Identity?.IsAuthenticated == true ? (User.IsInRole("Admin") ? "Admin" : "User") : "")';
+                const isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+                
+                if (!isAuthenticated) return;
+                
+                // Show notification only to appropriate user roles
+                if (targetRole === "Admin" && userRole !== "Admin") {
+                    return;
+                }
+                if (targetRole === "User" && userRole === "Admin") {
+                    return;
+                }
+
+                if (!toastEl || !messageEl) return;
+                
+                messageEl.textContent = message;
+                
+                // Switch colors based on target
+                if (targetRole === "Admin") {
+                    toastEl.className = "toast align-items-center text-white bg-gradient-amber border-0";
+                } else {
+                    toastEl.className = "toast align-items-center text-white bg-gradient-indigo border-0";
+                }
+                
+                toastEl.style.display = "block";
+                setTimeout(() => {
+                    toastEl.style.opacity = "1";
+                }, 50);
+
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(window.hideToast, 5000);
+            }
+
+            // Connect to SignalR Hub
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveNotification", function (message, targetRole) {
+                window.showToast(message, targetRole);
+            });
+
+            connection.start().catch(err => console.error("SignalR Connection Error: ", err));
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
