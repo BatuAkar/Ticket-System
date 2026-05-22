@@ -96,7 +96,7 @@
                     </a>
                 </div>
                 <div class="col-sm-6">
-                    <a href="?status=1" class="text-decoration-none stat-card-link" data-status="AÇIK">
+                    <a href="?status=1" class="text-decoration-none stat-card-link" data-status="1">
                         <div class="card stat-card-custom shadow-sm bg-gradient-amber text-white">
                             <div class="card-body p-4 d-flex justify-content-between align-items-center">
                                 <div>
@@ -109,7 +109,7 @@
                     </a>
                 </div>
                 <div class="col-sm-6">
-                    <a href="?status=2" class="text-decoration-none stat-card-link" data-status="ÇÖZÜLDÜ">
+                    <a href="?status=2" class="text-decoration-none stat-card-link" data-status="2">
                         <div class="card stat-card-custom shadow-sm bg-gradient-emerald text-white">
                             <div class="card-body p-4 d-flex justify-content-between align-items-center">
                                 <div>
@@ -122,7 +122,7 @@
                     </a>
                 </div>
                 <div class="col-sm-6">
-                    <a href="?status=3" class="text-decoration-none stat-card-link" data-status="KAPANDI">
+                    <a href="?status=3" class="text-decoration-none stat-card-link" data-status="3">
                         <div class="card stat-card-custom shadow-sm bg-gradient-slate text-white">
                             <div class="card-body p-4 d-flex justify-content-between align-items-center">
                                 <div>
@@ -170,7 +170,7 @@
                     <option value="">Tümü (Kategori)</option>
                     @foreach (var cat in Enum.GetValues<TicketSistemi.Models.TicketCategory>())
                     {
-                        <option value="@TicketSistemi.Models.EnumHelper.GetCategoryName(cat).ToUpper()">@TicketSistemi.Models.EnumHelper.GetCategoryName(cat)</option>
+                        <option value="@((int)cat)">@TicketSistemi.Models.EnumHelper.GetCategoryName(cat)</option>
                     }
                 </select>
                 <!-- Priority Filter -->
@@ -178,15 +178,15 @@
                     <option value="">Tümü (Öncelik)</option>
                     @foreach (var pri in Enum.GetValues<TicketSistemi.Models.TicketPriority>())
                     {
-                        <option value="@TicketSistemi.Models.EnumHelper.GetPriorityName(pri).ToUpper()">@TicketSistemi.Models.EnumHelper.GetPriorityName(pri)</option>
+                        <option value="@((int)pri)">@TicketSistemi.Models.EnumHelper.GetPriorityName(pri)</option>
                     }
                 </select>
                 <!-- Status Filter Dropdown -->
                 <select id="statusFilter" class="form-select form-control-custom" style="min-width: 140px; border-radius: 10px; cursor: pointer;">
                     <option value="">Tümü (Durum)</option>
-                    <option value="AÇIK">Açık</option>
-                    <option value="ÇÖZÜLDÜ">Çözüldü</option>
-                    <option value="KAPANDI">Kapandı</option>
+                    <option value="1">Açık</option>
+                    <option value="2">Çözüldü</option>
+                    <option value="3">Kapandı</option>
                 </select>
             </div>
         </div>
@@ -223,7 +223,7 @@
                         @foreach (var item in Model)
                         {
                             var cleanDesc = string.IsNullOrEmpty(item.Description) ? string.Empty : System.Text.RegularExpressions.Regex.Replace(item.Description, "<.*?>", string.Empty);
-                            <tr>
+                            <tr data-category="@((int)item.Category)" data-priority="@((int)item.Priority)" data-status="@((int)item.Status)">
                                 <td class="ps-4 fw-bold" style="color: #4f46e5;">#@item.Id</td>
                                 <td class="title-cell">
                                     <span class="fw-bold d-block">@item.Title</span>
@@ -406,23 +406,9 @@
                         customerText = customerTd.textContent.toLowerCase();
                     }
 
-                    let categoryText = "";
-                    const categoryCell = row.querySelector(".category-cell");
-                    if (categoryCell) {
-                        categoryText = categoryCell.textContent.trim().toUpperCase();
-                    }
-
-                    let priorityText = "";
-                    const priorityCell = row.querySelector(".priority-cell");
-                    if (priorityCell) {
-                        priorityText = priorityCell.textContent.trim().toUpperCase();
-                    }
-
-                    let statusText = "";
-                    const statusBadge = row.querySelector(".status-cell .badge");
-                    if (statusBadge) {
-                        statusText = statusBadge.textContent.trim().toUpperCase(); // "AÇIK", "ÇÖZÜLDÜ", "KAPANDI"
-                    }
+                    const categoryValue = row.getAttribute("data-category");
+                    const priorityValue = row.getAttribute("data-priority");
+                    const statusValue = row.getAttribute("data-status");
 
                     const matchesSearch = idText.includes(searchText) || 
                                            titleAndDescText.includes(searchText) || 
@@ -430,17 +416,17 @@
 
                     let matchesStatus = true;
                     if (selectedStatus) {
-                        matchesStatus = statusText === selectedStatus;
+                        matchesStatus = statusValue === selectedStatus;
                     }
 
                     let matchesCategory = true;
                     if (selectedCategory) {
-                        matchesCategory = categoryText === selectedCategory;
+                        matchesCategory = categoryValue === selectedCategory;
                     }
 
                     let matchesPriority = true;
                     if (selectedPriority) {
-                        matchesPriority = priorityText === selectedPriority;
+                        matchesPriority = priorityValue === selectedPriority;
                     }
 
                     if (matchesSearch && matchesStatus && matchesCategory && matchesPriority) {
@@ -465,7 +451,7 @@
                     filterTable();
                     
                     // Update URL search query without reloading
-                    const newUrl = status === 'AÇIK' ? '?status=1' : status === 'ÇÖZÜLDÜ' ? '?status=2' : status === 'KAPANDI' ? '?status=3' : '?status=';
+                    const newUrl = status ? `?status=${status}` : '?status=';
                     window.history.pushState({path: newUrl}, '', newUrl);
                 });
             });
@@ -473,12 +459,8 @@
             // If page loaded with a status filter from backend, set the select option and apply filter
             const urlParams = new URLSearchParams(window.location.search);
             const statusParam = urlParams.get('status');
-            if (statusParam === '1') {
-                statusSelect.value = 'AÇIK';
-            } else if (statusParam === '2') {
-                statusSelect.value = 'ÇÖZÜLDÜ';
-            } else if (statusParam === '3') {
-                statusSelect.value = 'KAPANDI';
+            if (statusParam) {
+                statusSelect.value = statusParam;
             }
             filterTable();
         });
