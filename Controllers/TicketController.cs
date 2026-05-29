@@ -345,6 +345,8 @@ namespace TicketSistemi.Controllers
             }
 
             // Kategori ve Öncelik güncellemeleri (Yalnızca Admin)
+            var oldCategory = ticket.Category;
+            var oldPriority = ticket.Priority;
             if (isAdmin)
             {
                 if (category.HasValue)
@@ -354,6 +356,11 @@ namespace TicketSistemi.Controllers
                 if (priority.HasValue)
                 {
                     ticket.Priority = priority.Value;
+                }
+                // Eğer daha önce üstlenilmemişse, otomatik olarak işlem yapan admini ata
+                if (string.IsNullOrEmpty(ticket.AssignedAgent))
+                {
+                    ticket.AssignedAgent = username;
                 }
             }
 
@@ -418,8 +425,41 @@ namespace TicketSistemi.Controllers
                 }
             }
 
+            // Log changes as system messages in the conversation history
+            if (isAdmin && oldCategory != ticket.Category)
+            {
+                ticket.Messages.Add(new TicketMessage
+                {
+                    Sender = "Sistem",
+                    Role = "Admin",
+                    Message = $"Kategori '{TicketSistemi.Models.EnumHelper.GetCategoryName(oldCategory)}' değerinden '{TicketSistemi.Models.EnumHelper.GetCategoryName(ticket.Category)}' değerine güncellendi.",
+                    SentDate = DateTime.Now
+                });
+            }
+
+            if (isAdmin && oldPriority != ticket.Priority)
+            {
+                ticket.Messages.Add(new TicketMessage
+                {
+                    Sender = "Sistem",
+                    Role = "Admin",
+                    Message = $"Öncelik seviyesi '{TicketSistemi.Models.EnumHelper.GetPriorityName(oldPriority)}' değerinden '{TicketSistemi.Models.EnumHelper.GetPriorityName(ticket.Priority)}' değerine güncellendi.",
+                    SentDate = DateTime.Now
+                });
+            }
+
             if (oldStatus != ticket.Status)
             {
+                string oldStatusName = oldStatus == TicketStatus.Acik ? "Açık" : oldStatus == TicketStatus.Cozuldu ? "Çözüldü" : "Kapalı";
+                string newStatusName = ticket.Status == TicketStatus.Acik ? "Açık" : ticket.Status == TicketStatus.Cozuldu ? "Çözüldü" : "Kapalı";
+                ticket.Messages.Add(new TicketMessage
+                {
+                    Sender = "Sistem",
+                    Role = "Admin",
+                    Message = $"Bilet durumu '{oldStatusName}' değerinden '{newStatusName}' değerine güncellendi.",
+                    SentDate = DateTime.Now
+                });
+
                 _logger.LogInformation("Destek talebi durumu güncellendi. ID: {Id}, Eski Durum: {OldStatus}, Yeni Durum: {NewStatus}, Güncelleyen: {Username}", id, oldStatus, ticket.Status, username);
             }
 

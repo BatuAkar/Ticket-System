@@ -252,50 +252,61 @@
                         {
                             @foreach (var msg in Model.Messages)
                             {
-                                var isMsgAdmin = string.Equals(msg.Role, "Admin", StringComparison.OrdinalIgnoreCase);
-                                <div class="bubble @(isMsgAdmin ? "bubble-right" : "bubble-left") mb-3">
-                                    <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom border-light border-opacity-10">
-                                        <div class="avatar @(isMsgAdmin ? "avatar-agent" : "avatar-user")">
-                                            @((msg.Sender ?? "U").Substring(0, Math.Min(2, (msg.Sender ?? "U").Length)).ToUpper())
-                                        </div>
-                                        <span class="fw-bold small @(isMsgAdmin ? "text-white" : "")">
-                                            @msg.Sender @(isMsgAdmin ? "(Destek Temsilcisi)" : "(Müşteri)")
+                                if (string.Equals(msg.Sender, "Sistem", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div class="text-center my-3 w-100 align-self-center">
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 rounded-pill fw-normal" style="font-size: 0.85rem; letter-spacing: 0.2px; max-width: 90%; white-space: normal; display: inline-block; text-align: left;">
+                                            ⚙️ @Html.Raw(msg.Message) <span class="text-muted ms-1 small">🕒 @msg.SentDate.ToString("dd MMM HH:mm")</span>
                                         </span>
                                     </div>
-                                    <div style="word-break: break-word; line-height: 1.6;">@Html.Raw(msg.Message)</div>
-                                    
-                                    @if (!string.IsNullOrEmpty(msg.AttachmentPath))
-                                    {
-                                        <div class="mt-3 p-2 rounded border bg-light bg-opacity-10 d-flex flex-column gap-2" style="max-width: 320px;">
-                                            @{
-                                                var ext = System.IO.Path.GetExtension(msg.AttachmentPath).ToLowerInvariant();
-                                                var isImage = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".webp";
-                                            }
-                                            @if (isImage)
-                                            {
-                                                <a href="@msg.AttachmentPath" target="_blank" title="Görseli yeni sekmede aç">
-                                                    <img src="@msg.AttachmentPath" alt="@msg.AttachmentFileName" class="img-fluid rounded border shadow-sm" style="max-height: 200px; object-fit: contain;" />
-                                                </a>
-                                            }
-                                            else
-                                            {
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="fs-4">📄</span>
-                                                    <div class="overflow-hidden" style="max-width: 250px;">
-                                                        <span class="d-block text-truncate fw-semibold small @(isMsgAdmin ? "text-white" : "")">@msg.AttachmentFileName</span>
-                                                        <a href="@msg.AttachmentPath" download class="btn btn-sm btn-light border py-1 px-2 mt-1" style="font-size: 0.75rem;">
-                                                            ⬇️ Dosyayı İndir
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            }
+                                }
+                                else
+                                {
+                                    var isMsgAdmin = string.Equals(msg.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+                                    <div class="bubble @(isMsgAdmin ? "bubble-right" : "bubble-left") mb-3">
+                                        <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom border-light border-opacity-10">
+                                            <div class="avatar @(isMsgAdmin ? "avatar-agent" : "avatar-user")">
+                                                @((msg.Sender ?? "U").Substring(0, Math.Min(2, (msg.Sender ?? "U").Length)).ToUpper())
+                                            </div>
+                                            <span class="fw-bold small @(isMsgAdmin ? "text-white" : "")">
+                                                @msg.Sender @(isMsgAdmin ? "(Destek Temsilcisi)" : "(Müşteri)")
+                                            </span>
                                         </div>
-                                    }
+                                        <div style="word-break: break-word; line-height: 1.6;">@Html.Raw(msg.Message)</div>
+                                        
+                                        @if (!string.IsNullOrEmpty(msg.AttachmentPath))
+                                        {
+                                            <div class="mt-3 p-2 rounded border bg-light bg-opacity-10 d-flex flex-column gap-2" style="max-width: 320px;">
+                                                @{
+                                                    var ext = System.IO.Path.GetExtension(msg.AttachmentPath).ToLowerInvariant();
+                                                    var isImage = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".webp";
+                                                }
+                                                @if (isImage)
+                                                {
+                                                    <a href="@msg.AttachmentPath" target="_blank" title="Görseli yeni sekmede aç">
+                                                        <img src="@msg.AttachmentPath" alt="@msg.AttachmentFileName" class="img-fluid rounded border shadow-sm" style="max-height: 200px; object-fit: contain;" />
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="fs-4">📄</span>
+                                                        <div class="overflow-hidden" style="max-width: 250px;">
+                                                            <span class="d-block text-truncate fw-semibold small @(isMsgAdmin ? "text-white" : "")">@msg.AttachmentFileName</span>
+                                                            <a href="@msg.AttachmentPath" download class="btn btn-sm btn-light border py-1 px-2 mt-1" style="font-size: 0.75rem;">
+                                                                ⬇️ Dosyayı İndir
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
 
-                                    <div class="bubble-meta justify-content-end">
-                                        <span>🕒 @msg.SentDate.ToString("dd MMM HH:mm")</span>
+                                        <div class="bubble-meta justify-content-end">
+                                            <span>🕒 @msg.SentDate.ToString("dd MMM HH:mm")</span>
+                                        </div>
                                     </div>
-                                </div>
+                                }
                             }
                         }
                     </div>
