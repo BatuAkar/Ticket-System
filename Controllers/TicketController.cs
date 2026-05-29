@@ -139,6 +139,8 @@ namespace TicketSistemi.Controllers
                 newTicket.AttachmentPath = attachmentPath;
                 newTicket.AttachmentFileName = attachmentFileName;
 
+                newTicket.Description = TicketSistemi.Utils.HtmlSanitizer.Sanitize(newTicket.Description);
+
                 var tickets = JsonDbManager.GetTickets();
                 
                 newTicket.Id = tickets.Any() ? tickets.Max(t => t.Id) + 1 : 1;
@@ -195,6 +197,32 @@ namespace TicketSistemi.Controllers
             var ticket = tickets.FirstOrDefault(t => t.Id == id);
             
             if (ticket == null) return NotFound();
+
+            // 1. Delete main ticket attachment from disk
+            if (!string.IsNullOrEmpty(ticket.AttachmentPath))
+            {
+                var fullPath = Path.Combine(_env.WebRootPath, ticket.AttachmentPath.TrimStart('/'));
+                if (System.IO.File.Exists(fullPath))
+                {
+                    try { System.IO.File.Delete(fullPath); } catch { /* fail silently */ }
+                }
+            }
+
+            // 2. Delete all message attachments from disk
+            if (ticket.Messages != null)
+            {
+                foreach (var msg in ticket.Messages)
+                {
+                    if (!string.IsNullOrEmpty(msg.AttachmentPath))
+                    {
+                        var msgFullPath = Path.Combine(_env.WebRootPath, msg.AttachmentPath.TrimStart('/'));
+                        if (System.IO.File.Exists(msgFullPath))
+                        {
+                            try { System.IO.File.Delete(msgFullPath); } catch { /* fail silently */ }
+                        }
+                    }
+                }
+            }
             
             tickets.Remove(ticket);
             JsonDbManager.SaveTickets(tickets);
@@ -351,7 +379,7 @@ namespace TicketSistemi.Controllers
                 {
                     Sender = username,
                     Role = isAdmin ? "Admin" : "User",
-                    Message = !string.IsNullOrWhiteSpace(message) ? message.Trim() : "",
+                    Message = !string.IsNullOrWhiteSpace(message) ? TicketSistemi.Utils.HtmlSanitizer.Sanitize(message.Trim()) : "",
                     SentDate = DateTime.Now,
                     AttachmentPath = attachmentPath,
                     AttachmentFileName = attachmentFileName

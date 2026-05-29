@@ -125,6 +125,12 @@
                 }
             });
 
+            // Load existing content if validation failed
+            var initialContent = document.querySelector('#descriptionInput').value;
+            if (initialContent) {
+                quill.root.innerHTML = initialContent;
+            }
+
             var form = document.querySelector('form');
             form.onsubmit = function () {
                 var descriptionInput = document.querySelector('#descriptionInput');

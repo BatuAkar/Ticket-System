@@ -282,7 +282,7 @@
                                                 <div class="d-flex align-items-center gap-2">
                                                     <span class="fs-4">📄</span>
                                                     <div class="overflow-hidden" style="max-width: 250px;">
-                                                        <span class="d-block text-truncate fw-semibold small @(isMsgAdmin ? "text-white" : "text-dark")">@msg.AttachmentFileName</span>
+                                                        <span class="d-block text-truncate fw-semibold small @(isMsgAdmin ? "text-white" : "")">@msg.AttachmentFileName</span>
                                                         <a href="@msg.AttachmentPath" download class="btn btn-sm btn-light border py-1 px-2 mt-1" style="font-size: 0.75rem;">
                                                             ⬇️ Dosyayı İndir
                                                         </a>
@@ -495,19 +495,34 @@
                 }
             });
 
+            const statusSelect = document.getElementById("status");
+            const categorySelect = document.getElementById("category");
+            const prioritySelect = document.getElementById("priority");
+
+            const initialStatus = statusSelect ? statusSelect.value : "";
+            const initialCategory = categorySelect ? categorySelect.value : "";
+            const initialPriority = prioritySelect ? prioritySelect.value : "";
+
             var form = document.querySelector('#replyForm form');
             form.onsubmit = function () {
                 var messageInput = document.querySelector('#messageInput');
                 var htmlContent = quill.root.innerHTML;
                 
-                // If the user entered nothing, check if there is an attachment
                 var fileInput = document.querySelector('#attachment');
                 var hasAttachment = fileInput && fileInput.files && fileInput.files.length > 0;
                 
-                if (quill.getText().trim().length === 0) {
+                const currentStatus = statusSelect ? statusSelect.value : "";
+                const currentCategory = categorySelect ? categorySelect.value : "";
+                const currentPriority = prioritySelect ? prioritySelect.value : "";
+                
+                const isMetadataChanged = (currentStatus !== initialStatus) || 
+                                          (currentCategory !== initialCategory) || 
+                                          (currentPriority !== initialPriority);
+
+                if (quill.getText().trim().length === 0 && !hasAttachment) {
                     messageInput.value = '';
-                    if (!hasAttachment) {
-                        alert('Lütfen bir mesaj yazın veya bir dosya ekleyin.');
+                    if (!isMetadataChanged) {
+                        alert('Lütfen bir mesaj yazın, bir dosya ekleyin ya da bilet bilgilerini güncelleyin.');
                         return false;
                     }
                 } else {
