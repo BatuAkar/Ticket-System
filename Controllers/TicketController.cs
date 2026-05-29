@@ -151,7 +151,7 @@ namespace TicketSistemi.Controllers
                 _logger.LogInformation("Yeni destek talebi oluşturuldu. ID: {Id}, Başlık: {Title}, Müşteri: {CustomerName}, Ek: {AttachmentName}", newTicket.Id, newTicket.Title, username, attachmentFileName);
 
                 // SignalR Live Notification
-                _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Yeni bir destek talebi oluşturuldu! Konu: {newTicket.Title}", "Admin");
+                await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Yeni bir destek talebi oluşturuldu! Konu: {newTicket.Title}", "Admin");
                 
                 return RedirectToAction("Index");
             }
@@ -471,18 +471,18 @@ namespace TicketSistemi.Controllers
                 if (isAdmin)
                 {
                     // Müşteriye bildirim gönder
-                    _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebinize yeni bir yanıt eklendi! Konu: {ticket.Title}", "User");
+                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebinize yeni bir yanıt eklendi! Konu: {ticket.Title}", "User");
                 }
                 else
                 {
                     // Admin'e bildirim gönder
-                    _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebe müşteri tarafından yeni yanıt yazıldı! Konu: {ticket.Title}", "Admin");
+                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talebe müşteri tarafından yeni yanıt yazıldı! Konu: {ticket.Title}", "Admin");
                 }
             }
             else if (status.HasValue && oldStatus != ticket.Status)
             {
                 string statusName = status.Value == TicketStatus.Acik ? "Açık" : status.Value == TicketStatus.Cozuldu ? "Çözüldü" : "Kapalı";
-                _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talep durumu güncellendi ({statusName}): {ticket.Title}", isAdmin ? "User" : "Admin");
+                await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"Talep durumu güncellendi ({statusName}): {ticket.Title}", isAdmin ? "User" : "Admin");
             }
 
             return RedirectToAction("Details", new { id = id });
